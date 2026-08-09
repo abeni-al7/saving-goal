@@ -139,21 +139,21 @@ Every implementation session must:
 
 **Outcome:** Users can create, edit, and permanently delete goals through accessible keyboard-complete dialogs.
 
-- [ ] Write component tests for opening, cancelling, submitting, and restoring focus from the goal dialog.
-- [ ] Implement `src/components/GoalFormDialog.tsx` with labeled name, target, opening balance, ISO currency, and threshold controls.
-- [ ] Show field-level errors linked with `aria-describedby`; do not rely on placeholders or color alone.
-- [ ] Lock currency and opening balance in edit mode while allowing name, target, and threshold changes.
-- [ ] Write tests for permanent deletion cancellation and confirmation, including transaction cascade.
-- [ ] Implement `src/components/DeleteGoalDialog.tsx` with the goal name, explicit history-loss language, and destructive-action focus management.
-- [ ] Write tests for first-run empty state, goal list rendering, add action, edit action, and completion-count summary.
-- [ ] Implement `src/components/EmptyState.tsx` and the initial `src/components/GoalsDashboard.tsx` composition.
-- [ ] Add polite live announcements for successful creation, editing, and deletion.
+- [x] Write component tests for opening, cancelling, submitting, and restoring focus from the goal dialog.
+- [x] Implement `src/components/GoalFormDialog.tsx` with labeled name, target, opening balance, ISO currency, and threshold controls.
+- [x] Show field-level errors linked with `aria-describedby`; do not rely on placeholders or color alone.
+- [x] Lock currency and opening balance in edit mode while allowing name, target, and threshold changes.
+- [x] Write tests for permanent deletion cancellation and confirmation, including transaction cascade.
+- [x] Implement `src/components/DeleteGoalDialog.tsx` with the goal name, explicit history-loss language, and destructive-action focus management.
+- [x] Write tests for first-run empty state, goal list rendering, add action, edit action, and completion-count summary.
+- [x] Implement `src/components/EmptyState.tsx` and the initial `src/components/GoalsDashboard.tsx` composition.
+- [x] Add polite live announcements for successful creation, editing, and deletion.
 
 **Validation**
 
-- [ ] `npm test -- --run src/components/GoalFormDialog src/components/DeleteGoalDialog src/components/GoalsDashboard`
-- [ ] `npm run typecheck`
-- [ ] `npm run lint`
+- [x] `npm test -- --run src/components/GoalFormDialog src/components/DeleteGoalDialog src/components/GoalsDashboard`
+- [x] `npm run typecheck`
+- [x] `npm run lint`
 
 **Handoff:** Record finished goal-management flows and known visual placeholders in the Session Log.
 
@@ -304,6 +304,13 @@ Every implementation session must:
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
+
+### 2026-08-09 - Session 4: Goal Creation And Management
+
+- Completed: Added accessible create/edit goal dialogs with linked field errors, immutable edit fields, Escape handling, focus containment and restoration; a named permanent-delete confirmation with safe initial focus and reducer-backed transaction cascade; first-run and populated dashboard compositions with goal/completion counts; reducer wiring through `useSavings`; and polite creation, editing, and deletion announcements.
+- Validation: `npm test -- --run src/components/GoalFormDialog src/components/DeleteGoalDialog src/components/GoalsDashboard` passed 9 tests across 3 files; `npm run format:check`, `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check` passed; workspace diagnostics reported no errors.
+- Decisions or deviations: Form validation reuses domain currency and minor-unit rules; edit mode renders currency and opening balance as disabled controls; destructive dialogs focus Cancel first. Goal rows intentionally show only names and management actions until Session 6; transaction controls and activity remain Session 5 placeholders.
+- Next unchecked task: Session 5 - write component tests for transaction mode, amount validation, projected balance, and projected progress.
 
 ### 2026-08-09 - Session 3: Storage And Application State
 

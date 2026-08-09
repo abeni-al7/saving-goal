@@ -1,4 +1,9 @@
+import { GoalsDashboard } from "./components/GoalsDashboard";
+import { useSavings } from "./state/useSavings";
+
 export default function App() {
+  const { state, dispatch } = useSavings();
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -9,7 +14,9 @@ export default function App() {
         </p>
       </header>
 
-      <main aria-label="Saving goals workspace" />
+      <main aria-label="Saving goals workspace">
+        <GoalsDashboard savings={state.savings} dispatch={dispatch} />
+      </main>
     </div>
   );
 }

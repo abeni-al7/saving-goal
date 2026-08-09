@@ -8,8 +8,9 @@ Build a saving-goal application. Define the target users, primary problem, and m
 
 ## Current Status
 
-The repository has a minimal React application shell, a tested money and saving
-goal domain, a validated local-storage boundary and reducer-driven application
+The repository has a responsive React goal-management dashboard, accessible
+create, edit, and permanent-delete dialogs, a tested money and saving goal
+domain, a validated local-storage boundary and reducer-driven application
 state, and executable formatting, linting, type-checking, unit-test,
 browser-test, build, and preview commands.
 
