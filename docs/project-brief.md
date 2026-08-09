@@ -8,7 +8,8 @@ Build a saving-goal application. Define the target users, primary problem, and m
 
 ## Current Status
 
-The repository has no application scaffold or selected technology stack yet.
+The repository has a minimal React application shell and executable formatting,
+linting, type-checking, unit-test, browser-test, build, and preview commands.
 
 ## Product Scope
 
@@ -26,21 +27,29 @@ Document terms whose meaning affects product behavior, such as goal, contributio
 
 ## Architecture
 
-Record the chosen runtime, framework, persistence layer, external services, and major module boundaries here. Capture consequential or difficult-to-reverse choices as architecture decision records in `docs/decisions/`.
+The application uses React, TypeScript, and Vite and is delivered as a static
+client-side application. Vitest and React Testing Library cover component and
+domain behavior; Playwright covers desktop, mobile, and reduced-motion browser
+workflows. Persistence and module boundaries will be documented as those
+features are implemented.
 
 ## Project Commands
 
-Replace this table when the toolchain is selected. Each row should contain one canonical command that works from the repository root.
+Run each command from the repository root.
 
-| Task | Command |
-| --- | --- |
-| Install | Not configured |
-| Format | Not configured |
-| Lint | Not configured |
-| Type-check | Not configured |
-| Test | Not configured |
-| Build | Not configured |
-| Run locally | Not configured |
+| Task             | Command                 |
+| ---------------- | ----------------------- |
+| Install          | `npm ci`                |
+| Format           | `npm run format`        |
+| Check formatting | `npm run format:check`  |
+| Lint             | `npm run lint`          |
+| Type-check       | `npm run typecheck`     |
+| Unit tests       | `npm test -- --run`     |
+| Test coverage    | `npm run test:coverage` |
+| Browser tests    | `npm run test:e2e`      |
+| Build            | `npm run build`         |
+| Run locally      | `npm run dev`           |
+| Preview build    | `npm run preview`       |
 
 ## Quality Gates
 
