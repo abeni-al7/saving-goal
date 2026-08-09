@@ -248,27 +248,27 @@ Every implementation session must:
 
 **Outcome:** Automated browser coverage proves the complete application behavior on desktop, mobile, reload, and reduced-motion configurations.
 
-- [ ] Add `e2e/saving-goals.spec.ts` with isolated localStorage state per test.
-- [ ] Cover empty-state goal creation and persistence after reload.
-- [ ] Cover per-goal currency formatting without cross-currency aggregation.
-- [ ] Cover deposits and ordinary withdrawals.
-- [ ] Cover warned-withdrawal cancellation and confirmation.
-- [ ] Cover overdraft rejection without a new ledger entry.
-- [ ] Cover first completion, over-100% display, and no celebration replay after reload.
-- [ ] Cover goal editing with locked currency/opening balance.
-- [ ] Cover cascading deletion after confirmation.
-- [ ] Seed malformed storage and verify it is preserved until explicit reset.
-- [ ] Run desktop Chromium, mobile Chromium, and reduced-motion projects.
-- [ ] Capture representative screenshots and inspect them for nonblank progress visuals, clipping, overlap, and dialog framing.
-- [ ] Use a canvas or pixel check only if any primary visual is rendered through canvas; otherwise document that DOM/CSS assertions cover the progress meter.
+- [x] Add `e2e/saving-goals.spec.ts` with isolated localStorage state per test.
+- [x] Cover empty-state goal creation and persistence after reload.
+- [x] Cover per-goal currency formatting without cross-currency aggregation.
+- [x] Cover deposits and ordinary withdrawals.
+- [x] Cover warned-withdrawal cancellation and confirmation.
+- [x] Cover overdraft rejection without a new ledger entry.
+- [x] Cover first completion, over-100% display, and no celebration replay after reload.
+- [x] Cover goal editing with locked currency/opening balance.
+- [x] Cover cascading deletion after confirmation.
+- [x] Seed malformed storage and verify it is preserved until explicit reset.
+- [x] Run desktop Chromium, mobile Chromium, and reduced-motion projects.
+- [x] Capture representative screenshots and inspect them for nonblank progress visuals, clipping, overlap, and dialog framing.
+- [x] Use a canvas or pixel check only if any primary visual is rendered through canvas; otherwise document that DOM/CSS assertions cover the progress meter.
 
 **Validation**
 
-- [ ] `npm run test:e2e`
-- [ ] `npm run build`
-- [ ] Desktop screenshot inspection passed.
-- [ ] Mobile screenshot inspection passed.
-- [ ] Reduced-motion inspection passed.
+- [x] `npm run test:e2e`
+- [x] `npm run build`
+- [x] Desktop screenshot inspection passed.
+- [x] Mobile screenshot inspection passed.
+- [x] Reduced-motion inspection passed.
 
 **Handoff:** Record browser versions, screenshots inspected, and any intentionally manual assertions in the Session Log.
 
@@ -304,6 +304,13 @@ Every implementation session must:
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
+
+### 2026-08-09 - Session 8: Browser Tests And Responsive Verification
+
+- Completed: Added isolated Playwright coverage for creation and reload persistence, separate USD/JPY formatting, deposits, ordinary and warned withdrawals, overdraft ledger protection, first completion and overfunding without replay, locked goal fields during editing, cascading deletion, and malformed-storage preservation through reset. Added responsive assertions for horizontal overflow, nonzero CSS progress fills, and dialog viewport framing, plus dashboard and dialog screenshots for every configured project.
+- Validation: `npm run test:e2e` passed 33 tests across desktop Chromium, Pixel 7 mobile Chromium, and reduced-motion Chromium; `npm run build`, `npm run format:check`, `npm run lint`, and `npm run typecheck` passed. Chromium 151.0.7922.34 was used. Six desktop, mobile, and reduced-motion dashboard/dialog screenshots were inspected with no blank progress, clipping, overlap, or framing defects.
+- Decisions or deviations: The progress meter is rendered with DOM and CSS transforms rather than canvas, so ARIA values, nonzero rendered fill widths, viewport geometry, and screenshots provide the visual evidence; no canvas pixel check applies. Explicit reset replaces malformed bytes with a valid empty envelope when the reset state is persisted.
+- Next unchecked task: Session 9 - update the project brief with the finished MVP scope, target users, requirements, privacy constraints, and verified commands.
 
 ### 2026-08-09 - Session 7: Persistence Recovery And Accessibility Audit
 
