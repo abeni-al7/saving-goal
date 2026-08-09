@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useReducer, useState } from "react";
 import { describe, expect, it } from "vitest";
@@ -54,7 +54,13 @@ function DashboardHarness({ initialSavings = emptySavings }) {
     createInitialSavingsReducerState(initialSavings),
   );
 
-  return <GoalsDashboard savings={state.savings} dispatch={dispatch} />;
+  return (
+    <GoalsDashboard
+      dispatch={dispatch}
+      pendingWithdrawal={state.pendingWithdrawal}
+      savings={state.savings}
+    />
+  );
 }
 
 describe("GoalsDashboard", () => {
@@ -128,5 +134,97 @@ describe("GoalsDashboard", () => {
       screen.getByRole("heading", { name: "Tokyo trip" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Safety net deleted.");
+  });
+
+  it("records an ordinary withdrawal directly and announces it", async () => {
+    const user = userEvent.setup();
+    render(<DashboardHarness initialSavings={savingsWithGoals()} />);
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Add transaction for Emergency fund",
+      }),
+    );
+    await user.click(screen.getByRole("button", { name: "Withdrawal" }));
+    await user.type(screen.getByRole("textbox", { name: "Amount" }), "10");
+    await user.click(screen.getByRole("button", { name: "Record withdrawal" }));
+
+    expect(
+      screen.queryByRole("dialog", { name: "Confirm large withdrawal" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "$10.00 withdrawn from Emergency fund.",
+    );
+    expect(
+      screen.getByRole("list", { name: "Activity for Emergency fund" }),
+    ).toHaveTextContent("-$10.00");
+  });
+
+  it("preserves activity on warning cancellation and records once on confirmation", async () => {
+    const user = userEvent.setup();
+    render(<DashboardHarness initialSavings={savingsWithGoals()} />);
+    const activity = () =>
+      screen.getByRole("list", { name: "Activity for Emergency fund" });
+    const transactionTrigger = screen.getByRole("button", {
+      name: "Add transaction for Emergency fund",
+    });
+
+    await user.click(transactionTrigger);
+    await user.click(screen.getByRole("button", { name: "Withdrawal" }));
+    await user.type(screen.getByRole("textbox", { name: "Amount" }), "20");
+    await user.click(screen.getByRole("button", { name: "Record withdrawal" }));
+
+    expect(
+      screen.getByRole("dialog", { name: "Confirm large withdrawal" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Keep savings" })).toHaveFocus();
+    expect(within(activity()).getAllByRole("listitem")).toHaveLength(1);
+
+    await user.click(screen.getByRole("button", { name: "Keep savings" }));
+    expect(
+      screen.queryByRole("dialog", { name: "Confirm large withdrawal" }),
+    ).not.toBeInTheDocument();
+    expect(within(activity()).getAllByRole("listitem")).toHaveLength(1);
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
+    expect(transactionTrigger).toHaveFocus();
+
+    await user.click(transactionTrigger);
+    await user.click(screen.getByRole("button", { name: "Withdrawal" }));
+    await user.type(screen.getByRole("textbox", { name: "Amount" }), "20");
+    await user.click(screen.getByRole("button", { name: "Record withdrawal" }));
+    await user.click(
+      screen.getByRole("button", { name: "Confirm withdrawal" }),
+    );
+
+    expect(within(activity()).getAllByRole("listitem")).toHaveLength(2);
+    expect(within(activity()).getByText("-$20.00")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "$20.00 withdrawn from Emergency fund.",
+    );
+    expect(transactionTrigger).toHaveFocus();
+  });
+
+  it("cancels a warned withdrawal with Escape and restores focus", async () => {
+    const user = userEvent.setup();
+    render(<DashboardHarness initialSavings={savingsWithGoals()} />);
+    const transactionTrigger = screen.getByRole("button", {
+      name: "Add transaction for Emergency fund",
+    });
+
+    await user.click(transactionTrigger);
+    await user.click(screen.getByRole("button", { name: "Withdrawal" }));
+    await user.type(screen.getByRole("textbox", { name: "Amount" }), "20");
+    await user.click(screen.getByRole("button", { name: "Record withdrawal" }));
+    await user.keyboard("{Escape}");
+
+    expect(
+      screen.queryByRole("dialog", { name: "Confirm large withdrawal" }),
+    ).not.toBeInTheDocument();
+    expect(transactionTrigger).toHaveFocus();
+    expect(
+      within(
+        screen.getByRole("list", { name: "Activity for Emergency fund" }),
+      ).getAllByRole("listitem"),
+    ).toHaveLength(1);
   });
 });

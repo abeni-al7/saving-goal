@@ -15,7 +15,11 @@ export default function App() {
       </header>
 
       <main aria-label="Saving goals workspace">
-        <GoalsDashboard savings={state.savings} dispatch={dispatch} />
+        <GoalsDashboard
+          dispatch={dispatch}
+          pendingWithdrawal={state.pendingWithdrawal}
+          savings={state.savings}
+        />
       </main>
     </div>
   );

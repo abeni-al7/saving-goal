@@ -116,6 +116,28 @@ describe("transactions", () => {
     ).toThrow("Transaction amount must be a positive safe integer.");
   });
 
+  it("rejects a transaction that would make the balance unsafe", () => {
+    const state = stateWithGoal();
+    const goalId = state.goals[0].id;
+    const nearLimit: SavingsState = {
+      ...state,
+      transactions: [
+        {
+          ...state.transactions[0],
+          amountMinorUnits: Number.MAX_SAFE_INTEGER - 1,
+        },
+      ],
+    };
+
+    expect(() =>
+      recordTransaction(
+        nearLimit,
+        { goalId, kind: "deposit", amountMinorUnits: 2 },
+        providers("overflow", "2026-08-09T12:00:00.000Z"),
+      ),
+    ).toThrow("Projected balance is outside the safe integer range.");
+  });
+
   it("rejects transactions for a missing goal", () => {
     const state = stateWithGoal();
 

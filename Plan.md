@@ -165,20 +165,20 @@ Every implementation session must:
 
 **Outcome:** Users can deposit and withdraw with projected effects, large-withdrawal confirmation, overdraft protection, and readable activity history.
 
-- [ ] Write tests for selecting deposit or withdrawal, validating amounts, previewing projected balance/progress, and successful submission.
-- [ ] Implement `src/components/TransactionDialog.tsx` with a segmented mode control and currency-aware amount input.
-- [ ] Write tests proving ordinary withdrawals submit directly, warned withdrawals require confirmation, cancellation preserves state, and confirmation records exactly one transaction.
-- [ ] Implement `src/components/WithdrawalWarningDialog.tsx` with amount, projected balance, percentage impact, cancel, and confirm actions.
-- [ ] Show overdrafts as blocking field errors before warning evaluation.
-- [ ] Write tests for opening balance, deposits, withdrawals, chronological display, and empty activity.
-- [ ] Implement `src/components/ActivityList.tsx` with localized amounts and dates.
-- [ ] Connect transaction actions and live announcements to `GoalsDashboard`.
+- [x] Write tests for selecting deposit or withdrawal, validating amounts, previewing projected balance/progress, and successful submission.
+- [x] Implement `src/components/TransactionDialog.tsx` with a segmented mode control and currency-aware amount input.
+- [x] Write tests proving ordinary withdrawals submit directly, warned withdrawals require confirmation, cancellation preserves state, and confirmation records exactly one transaction.
+- [x] Implement `src/components/WithdrawalWarningDialog.tsx` with amount, projected balance, percentage impact, cancel, and confirm actions.
+- [x] Show overdrafts as blocking field errors before warning evaluation.
+- [x] Write tests for opening balance, deposits, withdrawals, chronological display, and empty activity.
+- [x] Implement `src/components/ActivityList.tsx` with localized amounts and dates.
+- [x] Connect transaction actions and live announcements to `GoalsDashboard`.
 
 **Validation**
 
-- [ ] `npm test -- --run src/components/TransactionDialog src/components/WithdrawalWarningDialog src/components/ActivityList`
-- [ ] `npm run typecheck`
-- [ ] `npm run lint`
+- [x] `npm test -- --run src/components/TransactionDialog src/components/WithdrawalWarningDialog src/components/ActivityList`
+- [x] `npm run typecheck`
+- [x] `npm run lint`
 
 **Handoff:** Record confirmed transaction behavior and threshold boundary semantics in the Session Log.
 
@@ -304,6 +304,13 @@ Every implementation session must:
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
+
+### 2026-08-09 - Session 5: Deposits, Withdrawals, And Activity
+
+- Completed: Added a currency-aware transaction dialog with deposit/withdrawal segmented modes, linked amount errors, projected balance and progress; immediate overdraft and aggregate-overflow blocking; a controlled large-withdrawal confirmation with projected impact and trigger-focus restoration; deterministic localized activity history; reducer-backed dashboard actions; and polite deposit and confirmed-withdrawal announcements.
+- Validation: `npm test -- --run` passed 95 tests across 16 files; focused transaction and dashboard tests passed again after the final callback fix; `npm run format:check`, `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check` passed; workspace diagnostics reported no errors.
+- Decisions or deviations: A withdrawal exactly at the configured threshold commits directly; only a strictly larger share creates a pending warning. Cancellation leaves the ledger unchanged, confirmation consumes the pending request into exactly one record, and cancel, Escape, and confirmation restore focus to the initiating transaction action. Overdrafts and projected balances outside the safe-integer range are blocked before dispatch. Activity is ordered by timestamp and transaction ID through the domain helper.
+- Next unchecked task: Session 6 - write progress-meter tests for semantics, overfunding, accessible values, and reduced motion.
 
 ### 2026-08-09 - Session 4: Goal Creation And Management
 

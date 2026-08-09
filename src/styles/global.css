@@ -154,6 +154,95 @@ main {
   gap: var(--space-2);
 }
 
+.segmented-control {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+  padding: var(--space-1);
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  background: #e9e6dc;
+}
+
+.segmented-control .button {
+  width: 100%;
+}
+
+.segmented-control .button[aria-pressed="true"] {
+  color: var(--color-surface);
+  background: var(--color-progress-dark);
+}
+
+.transaction-preview,
+.withdrawal-impact {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-4) 0 0;
+  padding-block: var(--space-3);
+  border-block: 1px solid var(--color-line);
+}
+
+.transaction-preview div,
+.withdrawal-impact div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.transaction-preview dt,
+.withdrawal-impact dt {
+  color: var(--color-muted);
+}
+
+.transaction-preview dd,
+.withdrawal-impact dd {
+  margin: 0;
+  font-weight: 700;
+  text-align: right;
+}
+
+.activity-list {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--color-line);
+  list-style: none;
+}
+
+.activity-list li {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-block: var(--space-3);
+  border-bottom: 1px dotted var(--color-line);
+}
+
+.activity-list li > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.activity-list__kind,
+.activity-list__amount {
+  font-weight: 700;
+}
+
+.activity-list time,
+.activity-empty {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.activity-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
 .button {
   min-height: 2.75rem;
   padding: var(--space-2) var(--space-4);

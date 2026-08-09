@@ -1,0 +1,157 @@
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
+import { createGoal } from "../domain/goals";
+import { TransactionDialog } from "./TransactionDialog";
+
+function emergencyFundGoal() {
+  return createGoal(
+    {
+      name: "Emergency fund",
+      targetAmount: "1000.00",
+      openingBalanceAmount: "500.00",
+      currency: "USD",
+    },
+    {
+      createId: () => "seed-id",
+      now: () => "2026-08-09T12:00:00.000Z",
+    },
+  ).goal;
+}
+
+describe("TransactionDialog", () => {
+  it("previews and submits a withdrawal in currency minor units", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(
+      <TransactionDialog
+        currentBalanceMinorUnits={50_000}
+        goal={emergencyFundGoal()}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Add transaction for Emergency fund",
+      }),
+    );
+    await user.click(screen.getByRole("button", { name: "Withdrawal" }));
+    await user.type(screen.getByRole("textbox", { name: "Amount" }), "200");
+
+    expect(screen.getByText("Projected balance")).toBeInTheDocument();
+    expect(screen.getByText("$300.00")).toBeInTheDocument();
+    expect(screen.getByText("Projected progress")).toBeInTheDocument();
+    expect(screen.getByText("30%")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Record withdrawal" }));
+
+    expect(onSubmit).toHaveBeenCalledOnce();
+    expect(onSubmit).toHaveBeenCalledWith("withdrawal", 20_000);
+  });
+
+  it("previews and submits a deposit", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(
+      <TransactionDialog
+        currentBalanceMinorUnits={50_000}
+        goal={emergencyFundGoal()}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Add transaction for Emergency fund",
+      }),
+    );
+    await user.type(screen.getByRole("textbox", { name: "Amount" }), "100");
+
+    expect(screen.getByText("$600.00")).toBeInTheDocument();
+    expect(screen.getByText("60%")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Record deposit" }));
+
+    expect(onSubmit).toHaveBeenCalledWith("deposit", 10_000);
+  });
+
+  it("links malformed amount errors to the field", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(
+      <TransactionDialog
+        currentBalanceMinorUnits={50_000}
+        goal={emergencyFundGoal()}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Add transaction for Emergency fund",
+      }),
+    );
+    const amount = screen.getByRole("textbox", { name: "Amount" });
+    await user.type(amount, "12.345");
+    await user.click(screen.getByRole("button", { name: "Record deposit" }));
+
+    expect(amount).toHaveAccessibleDescription(
+      "Enter a valid amount with no more than 2 decimal places.",
+    );
+    expect(amount).toHaveAttribute("aria-invalid", "true");
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("shows an overdraft as a blocking field error before submission", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(
+      <TransactionDialog
+        currentBalanceMinorUnits={50_000}
+        goal={emergencyFundGoal()}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Add transaction for Emergency fund",
+      }),
+    );
+    await user.click(screen.getByRole("button", { name: "Withdrawal" }));
+    const amount = screen.getByRole("textbox", { name: "Amount" });
+    await user.type(amount, "600");
+
+    expect(amount).toHaveAccessibleDescription(
+      "Withdrawal cannot exceed the current balance.",
+    );
+    expect(amount).toHaveAttribute("aria-invalid", "true");
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("blocks a deposit that would make the projected balance unsafe", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(
+      <TransactionDialog
+        currentBalanceMinorUnits={Number.MAX_SAFE_INTEGER - 1}
+        goal={emergencyFundGoal()}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Add transaction for Emergency fund",
+      }),
+    );
+    const amount = screen.getByRole("textbox", { name: "Amount" });
+    await user.type(amount, "0.02");
+
+    expect(amount).toHaveAccessibleDescription(
+      "Projected balance is outside the safe integer range.",
+    );
+    expect(amount).toHaveAttribute("aria-invalid", "true");
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+});
