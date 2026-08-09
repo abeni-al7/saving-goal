@@ -4,7 +4,19 @@ This document is the durable context for contributors and coding agents. Keep it
 
 ## Goal
 
-Build a saving-goal application. Define the target users, primary problem, and measurable outcome before implementation begins.
+Build a private, browser-based saving-goal application for individuals who want
+to plan several purchases or reserves without creating an account or sharing
+financial data with a service. A successful MVP lets a user complete the core
+create, fund, withdraw, review, and delete workflows on mobile and desktop while
+retaining valid data across browser refreshes.
+
+## Target Users
+
+- Individuals tracking earmarked savings on a personal device.
+- Privacy-conscious users who prefer local-only data over an account or cloud
+  sync.
+- Users managing goals in one or more currencies without currency conversion or
+  aggregate totals.
 
 ## Current Status
 
@@ -25,11 +37,24 @@ executable.
 
 ### In Scope
 
-- To be defined before the first feature is implemented.
+- Create, edit, and permanently delete multiple saving goals.
+- Give each goal an immutable ISO currency and opening balance.
+- Record timestamped deposits and withdrawals in an immutable ledger.
+- Derive balances, progress, and first completion from goals and transactions.
+- Warn before withdrawals above a per-goal threshold and reject overdrafts.
+- Persist a versioned state envelope in browser local storage with explicit
+  recovery for invalid or unavailable storage.
+- Support keyboard navigation, accessible dialogs and announcements, responsive
+  layouts, and reduced-motion preferences.
 
 ### Out Of Scope
 
-- To be defined before the first feature is implemented.
+- Authentication, user accounts, cloud sync, or multi-device access.
+- Exchange rates, currency conversion, or totals across unlike currencies.
+- Target dates, recurring deposits, archives, transaction editing, notes, and
+  import or export.
+- Bank connections, payment initiation, financial advice, and server-side
+  backups.
 
 ## Domain Terms
 
@@ -58,6 +83,11 @@ withdrawal decisions. IDs and clocks are injected where records are created.
 Application state hydrates once through `useSavings` and persists successful
 durable changes through a revision-gated effect.
 
+The application has no backend or runtime network dependency. Vite produces
+static assets that can be hosted on any service capable of serving the built
+files. Architecture rationale is recorded in
+`docs/decisions/0001-client-only-react-local-storage.md`.
+
 ## Persistence And Recovery
 
 - The local-storage key is `saving-goal:state`.
@@ -69,6 +99,19 @@ durable changes through a revision-gated effect.
 - Unavailable storage permits explicit session-only use. Save failures retain
   in-memory changes and surface a recoverable status.
 - Only an explicit reset removes stored data.
+
+## Privacy And Data Ownership
+
+- Goal names, amounts, currencies, thresholds, and transaction history remain in
+  the current browser profile's local storage.
+- The application does not transmit, synchronize, analyze, or back up saving
+  data.
+- Anyone with access to the browser profile may be able to inspect the locally
+  stored data; this application is not an encrypted vault.
+- Clearing browser site data, using private browsing, changing browsers or
+  profiles, or losing the device can permanently remove the data.
+- The UI never includes the raw stored value in recovery errors, and malformed
+  data is not overwritten until the user explicitly resets it.
 
 ## Project Commands
 
@@ -88,6 +131,13 @@ Run each command from the repository root.
 | Run locally      | `npm run dev`           |
 | Preview build    | `npm run preview`       |
 
+`npm ci` is the canonical clean install. Browser tests use Playwright-managed
+Chromium; on a new machine, install it with `npx playwright install chromium` if
+the browser binary is not already available.
+
+All commands in this table were verified successfully on 2026-08-09 for the
+1.0.0 MVP release.
+
 ## Quality Gates
 
 - New behavior has focused automated coverage.
@@ -97,8 +147,6 @@ Run each command from the repository root.
 
 ## Open Decisions
 
-- Target users and first workflow
-- Functional and non-functional requirements
-- Application type and technology stack
-- Data ownership, privacy, and persistence requirements
-- Deployment target and observability needs
+The MVP has no unresolved product or architecture decisions. A future move to
+accounts, synchronization, or server-side persistence requires a new decision
+record covering identity, authorization, migration, privacy, and operations.

@@ -38,16 +38,16 @@ Every implementation session must:
 
 ## Acceptance Criteria
 
-- [ ] A user can create a goal with a name, positive target, nonnegative opening balance, ISO currency, and warning threshold.
-- [ ] A user can edit a goal's name, target, and warning threshold, but not its currency or opening balance.
-- [ ] Deposits and withdrawals create timestamped immutable records and update the derived balance immediately.
-- [ ] A withdrawal exceeding the configured share of current balance shows projected impact and requires confirmation.
-- [ ] A withdrawal exceeding current balance is rejected without changing history.
-- [ ] Every goal displays formatted balance and target values, an exact integer percentage, and a bar visually capped at 100%.
-- [ ] First completion records a timestamp and triggers an accessible celebration that does not replay after refresh.
-- [ ] Goal deletion names the goal, warns about history loss, and cascades only after confirmation.
-- [ ] Valid data survives refreshes; corrupt or unavailable storage is not silently overwritten.
-- [ ] Primary workflows work on mobile and desktop with keyboard navigation and reduced motion.
+- [x] A user can create a goal with a name, positive target, nonnegative opening balance, ISO currency, and warning threshold.
+- [x] A user can edit a goal's name, target, and warning threshold, but not its currency or opening balance.
+- [x] Deposits and withdrawals create timestamped immutable records and update the derived balance immediately.
+- [x] A withdrawal exceeding the configured share of current balance shows projected impact and requires confirmation.
+- [x] A withdrawal exceeding current balance is rejected without changing history.
+- [x] Every goal displays formatted balance and target values, an exact integer percentage, and a bar visually capped at 100%.
+- [x] First completion records a timestamp and triggers an accessible celebration that does not replay after refresh.
+- [x] Goal deletion names the goal, warns about history loss, and cascades only after confirmation.
+- [x] Valid data survives refreshes; corrupt or unavailable storage is not silently overwritten.
+- [x] Primary workflows work on mobile and desktop with keyboard navigation and reduced motion.
 
 ---
 
@@ -280,30 +280,37 @@ Every implementation session must:
 
 **Outcome:** The repository accurately documents the finished MVP and every configured quality gate passes from a clean checkout.
 
-- [ ] Update `docs/project-brief.md` with target users, MVP scope, exclusions, domain terms, architecture, privacy/storage constraints, and verified commands.
-- [ ] Add `docs/decisions/0001-client-only-react-local-storage.md` documenting context, decision, alternatives, consequences, and validation.
-- [ ] Add `README.md` with prerequisites, install/run/test commands, feature summary, local-only data behavior, and reset instructions.
-- [ ] Check every acceptance criterion in this plan against automated or documented manual evidence.
-- [ ] Review `git diff` for accidental changes, generated artifacts, secrets, stale documentation, and inconsistent package metadata.
-- [ ] Run the complete validation suite from the repository root.
-- [ ] Start the development server, verify the final URL loads, and record the URL in the Session Log.
+- [x] Update `docs/project-brief.md` with target users, MVP scope, exclusions, domain terms, architecture, privacy/storage constraints, and verified commands.
+- [x] Add `docs/decisions/0001-client-only-react-local-storage.md` documenting context, decision, alternatives, consequences, and validation.
+- [x] Add `README.md` with prerequisites, install/run/test commands, feature summary, local-only data behavior, and reset instructions.
+- [x] Check every acceptance criterion in this plan against automated or documented manual evidence.
+- [x] Review `git diff` for accidental changes, generated artifacts, secrets, stale documentation, and inconsistent package metadata.
+- [x] Run the complete validation suite from the repository root.
+- [x] Start the development server, verify the final URL loads, and record the URL in the Session Log.
 
 **Final Validation**
 
-- [ ] `npm ci`
-- [ ] `npm run format:check`
-- [ ] `npm run lint`
-- [ ] `npm run typecheck`
-- [ ] `npm run test:coverage`
-- [ ] `npm run build`
-- [ ] `npm run test:e2e`
-- [ ] Workspace diagnostics report no relevant errors.
+- [x] `npm ci`
+- [x] `npm run format:check`
+- [x] `npm run lint`
+- [x] `npm run typecheck`
+- [x] `npm run test:coverage`
+- [x] `npm run build`
+- [x] `npm run test:e2e`
+- [x] Workspace diagnostics report no relevant errors.
 
 ---
 
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
+
+### 2026-08-09 - Session 9: Documentation And Release Gate
+
+- Completed: Documented target users, final MVP scope and exclusions, architecture, privacy and local-only storage constraints, recovery/reset behavior, prerequisites, and verified commands; accepted the client-only React and local-storage architecture decision; aligned package metadata to version 1.0.0; and checked every acceptance criterion against unit, component, browser, or documented manual evidence. Final diff review found only the intended five release files, no generated artifacts, whitespace errors, or likely secrets.
+- Validation: `npm ci` installed 264 packages and audited 265 with no vulnerabilities; `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm run test:coverage` (111 tests, 90.21% statements), `npm run build`, and `npm run test:e2e` (33 tests across desktop, mobile, and reduced-motion Chromium) passed. The development build loaded in the shared browser at `http://127.0.0.1:5175/` with the application heading and empty-state workspace rendered.
+- Decisions or deviations: The VS Code diagnostics cache continued to show stale missing-module reports in unchanged tests immediately after `npm ci` replaced `node_modules`; direct TypeScript compilation and both test runners resolved those files successfully, so no relevant source diagnostic remained. The development server is intentionally left running on port 5175 for review.
+- Next unchecked task: None; the 1.0.0 MVP release gate is complete.
 
 ### 2026-08-09 - Session 8: Browser Tests And Responsive Verification
 
