@@ -104,6 +104,60 @@ main {
   margin-top: 3rem;
 }
 
+.storage-status {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+  padding: var(--space-4);
+  border-block: 1px solid var(--color-warning-dark);
+  color: var(--color-ink);
+  background: var(--color-warning-soft);
+}
+
+.storage-status--session {
+  border-color: var(--color-progress-dark);
+  background: var(--color-progress-soft);
+}
+
+.storage-status > svg {
+  margin-top: var(--space-1);
+  color: var(--color-warning-dark);
+}
+
+.storage-status--session > svg {
+  color: var(--color-progress-dark);
+}
+
+.storage-status h2 {
+  margin: 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.25rem;
+  letter-spacing: 0;
+}
+
+.storage-status p {
+  max-width: 46rem;
+  margin: var(--space-2) 0 0;
+  line-height: 1.5;
+}
+
+.storage-status__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.storage-status .button--danger-text {
+  border-color: var(--color-warning-dark);
+}
+
+.storage-status:not(.storage-status--session):focus-visible,
+.storage-status:not(.storage-status--session) :focus-visible {
+  outline-color: var(--color-warning-dark);
+}
+
 .section-kicker {
   margin: 0 0 var(--space-2);
   color: var(--color-progress-dark);

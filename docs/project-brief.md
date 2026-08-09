@@ -13,8 +13,12 @@ accessible animated progress, overfunding and persisted completion states,
 per-goal localized balances and activity, and icon-based goal controls. Create,
 edit, permanent-delete, deposit, withdrawal, and large-withdrawal confirmation
 flows are implemented over a tested money and saving-goal domain, a validated
-local-storage boundary, and reducer-driven application state. Formatting,
-linting, type-checking, unit-test, browser-test, build, and preview commands are
+local-storage boundary, and reducer-driven application state. Unavailable,
+quota-failed, and corrupt storage states provide explicit session-only or reset
+recovery without exposing or silently overwriting raw data. Primary workflows
+have passed desktop and mobile keyboard, focus, contrast, landmark, form,
+dialog, live-region, and reduced-motion audits. Formatting, linting,
+type-checking, unit-test, browser-test, build, and preview commands are
 executable.
 
 ## Product Scope

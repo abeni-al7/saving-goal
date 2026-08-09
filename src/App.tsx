@@ -1,8 +1,24 @@
+import { useRef } from "react";
 import { GoalsDashboard } from "./components/GoalsDashboard";
+import { StorageStatus } from "./components/StorageStatus";
 import { useSavings } from "./state/useSavings";
 
 export default function App() {
-  const { state, dispatch } = useSavings();
+  const { state, dispatch, continueInSession, resetSavedData } = useSavings();
+  const mainRef = useRef<HTMLElement>(null);
+  const canUseWorkspace =
+    state.storageStatus.kind === "ready" ||
+    state.storageStatus.kind === "session-only" ||
+    state.storageStatus.kind === "save-error";
+
+  function resetSavedDataAndFocus(): boolean {
+    const wasReset = resetSavedData();
+    if (wasReset) {
+      queueMicrotask(() => mainRef.current?.focus());
+    }
+
+    return wasReset;
+  }
 
   return (
     <div className="app-shell">
@@ -14,12 +30,19 @@ export default function App() {
         </p>
       </header>
 
-      <main aria-label="Saving goals workspace">
-        <GoalsDashboard
-          dispatch={dispatch}
-          pendingWithdrawal={state.pendingWithdrawal}
-          savings={state.savings}
+      <main aria-label="Saving goals workspace" ref={mainRef} tabIndex={-1}>
+        <StorageStatus
+          status={state.storageStatus}
+          onContinueInSession={continueInSession}
+          onResetSavedData={resetSavedDataAndFocus}
         />
+        {canUseWorkspace ? (
+          <GoalsDashboard
+            dispatch={dispatch}
+            pendingWithdrawal={state.pendingWithdrawal}
+            savings={state.savings}
+          />
+        ) : null}
       </main>
     </div>
   );

@@ -219,24 +219,24 @@ Every implementation session must:
 
 **Outcome:** Storage failure states are actionable, and all primary workflows are usable with assistive technology, keyboard input, and reduced motion.
 
-- [ ] Write tests for unavailable storage, quota failure, corrupt data, session-only continuation, reset cancellation, and explicit reset confirmation.
-- [ ] Implement `src/components/StorageStatus.tsx` without exposing raw user data in error messages.
-- [ ] Verify a corrupt stored value remains byte-for-byte unchanged until explicit reset.
-- [ ] Audit document landmarks and heading order.
-- [ ] Audit every input for a visible label and linked error description.
-- [ ] Audit dialogs for accessible names, initial focus, focus containment, Escape behavior, and trigger-focus restoration.
-- [ ] Audit icon controls and progress meters for accessible names and values.
-- [ ] Audit live announcements so state changes are useful but not duplicated.
-- [ ] Audit keyboard order and visible focus on desktop and mobile layouts.
-- [ ] Audit text, control, warning, and progress contrast to WCAG AA or better.
-- [ ] Confirm all nonessential animation honors `prefers-reduced-motion`.
+- [x] Write tests for unavailable storage, quota failure, corrupt data, session-only continuation, reset cancellation, and explicit reset confirmation.
+- [x] Implement `src/components/StorageStatus.tsx` without exposing raw user data in error messages.
+- [x] Verify a corrupt stored value remains byte-for-byte unchanged until explicit reset.
+- [x] Audit document landmarks and heading order.
+- [x] Audit every input for a visible label and linked error description.
+- [x] Audit dialogs for accessible names, initial focus, focus containment, Escape behavior, and trigger-focus restoration.
+- [x] Audit icon controls and progress meters for accessible names and values.
+- [x] Audit live announcements so state changes are useful but not duplicated.
+- [x] Audit keyboard order and visible focus on desktop and mobile layouts.
+- [x] Audit text, control, warning, and progress contrast to WCAG AA or better.
+- [x] Confirm all nonessential animation honors `prefers-reduced-motion`.
 
 **Validation**
 
-- [ ] `npm test -- --run`
-- [ ] `npm run typecheck`
-- [ ] `npm run lint`
-- [ ] Complete a keyboard-only pass of create, edit, deposit, warned withdrawal, and delete.
+- [x] `npm test -- --run`
+- [x] `npm run typecheck`
+- [x] `npm run lint`
+- [x] Complete a keyboard-only pass of create, edit, deposit, warned withdrawal, and delete.
 
 **Handoff:** Record audited flows, remaining exceptions, and any manual-only findings in the Session Log.
 
@@ -304,6 +304,13 @@ Every implementation session must:
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
+
+### 2026-08-09 - Session 7: Persistence Recovery And Accessibility Audit
+
+- Completed: Added an actionable storage status region for unavailable, quota-failed, corrupt, and session-only states; gated mutable workflows until unavailable or corrupt initial storage is explicitly resolved; added a named, focus-contained permanent-reset confirmation; and verified malformed saved bytes remain unchanged through hydration and reset cancellation. Audited landmarks, heading order, visible labels, linked errors, dialog naming and focus behavior, icon labels, progress values, live announcements, keyboard order, visible focus, contrast, and reduced motion.
+- Validation: `npm run format:check`, `npm test -- --run` (111 tests across 19 files), `npm run typecheck`, and `npm run lint` passed. Keyboard-only create, edit, deposit, warned withdrawal, and delete passed at desktop and 360x800 mobile widths with no horizontal overflow; dialog Escape and focus wrapping/restoration also passed. Measured text at 5.40:1 or better, focus outlines at 3.27:1 or better, and progress/control pairs at 4.21:1 or better.
+- Decisions or deviations: Recovery messages expose no raw stored value. Initial corrupt or unavailable storage blocks editing until the user chooses session-only use or confirms reset; save failures retain the current in-memory state and remain usable. Existing CSS globally suppresses nonessential transition/animation duration under reduced motion, while `ProgressMeter` also renders its immediate reduced-motion state. No accessibility exceptions remain from this audit; browser-project automation and screenshot evidence remain Session 8 scope.
+- Next unchecked task: Session 8 - add isolated Playwright coverage for the complete saving-goal workflows.
 
 ### 2026-08-09 - Session 6: Goal Presentation And Motion
 
