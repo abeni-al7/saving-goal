@@ -85,23 +85,23 @@ Every implementation session must:
 
 **Outcome:** Pure, tested domain functions represent currencies, goals, immutable transactions, balances, progress, completion, and withdrawal decisions.
 
-- [ ] Define `Goal`, `Transaction`, `SavingsState`, `CurrencyCode`, transaction-kind, and identifier types in `src/domain/types.ts`.
-- [ ] Write failing tests for currency fraction digits, valid amount parsing, malformed decimals, negative values, unsafe integers, zero targets, and locale-aware formatting.
-- [ ] Implement `src/domain/money.ts` using safe integer minor units and `Intl.NumberFormat` metadata instead of floating-point balance arithmetic.
-- [ ] Write failing tests for goal creation with an opening-balance transaction, editable fields, immutable currency, and input validation.
-- [ ] Implement goal creation and editing in `src/domain/goals.ts` with injected ID and clock providers.
-- [ ] Write failing tests for deposits, withdrawals, deterministic ordering, derived balances, and cascading goal deletion.
-- [ ] Implement immutable ledger operations in `src/domain/transactions.ts`; never persist a second mutable balance field.
-- [ ] Write failing tests for zero, partial, complete, and overfunded progress and first-completion timestamp behavior.
-- [ ] Implement progress and completion calculations with percentage display allowed above 100% and visual fill capped at 100%.
-- [ ] Write failing tests for ordinary withdrawals, a withdrawal exactly at the threshold, a withdrawal above it, zero balance, and overdrafts.
-- [ ] Implement `src/domain/withdrawals.ts` so warning comparison uses integer arithmetic and overdrafts are hard failures.
+- [x] Define `Goal`, `Transaction`, `SavingsState`, `CurrencyCode`, transaction-kind, and identifier types in `src/domain/types.ts`.
+- [x] Write failing tests for currency fraction digits, valid amount parsing, malformed decimals, negative values, unsafe integers, zero targets, and locale-aware formatting.
+- [x] Implement `src/domain/money.ts` using safe integer minor units and `Intl.NumberFormat` metadata instead of floating-point balance arithmetic.
+- [x] Write failing tests for goal creation with an opening-balance transaction, editable fields, immutable currency, and input validation.
+- [x] Implement goal creation and editing in `src/domain/goals.ts` with injected ID and clock providers.
+- [x] Write failing tests for deposits, withdrawals, deterministic ordering, derived balances, and cascading goal deletion.
+- [x] Implement immutable ledger operations in `src/domain/transactions.ts`; never persist a second mutable balance field.
+- [x] Write failing tests for zero, partial, complete, and overfunded progress and first-completion timestamp behavior.
+- [x] Implement progress and completion calculations with percentage display allowed above 100% and visual fill capped at 100%.
+- [x] Write failing tests for ordinary withdrawals, a withdrawal exactly at the threshold, a withdrawal above it, zero balance, and overdrafts.
+- [x] Implement `src/domain/withdrawals.ts` so warning comparison uses integer arithmetic and overdrafts are hard failures.
 
 **Validation**
 
-- [ ] `npm test -- --run src/domain`
-- [ ] `npm run typecheck`
-- [ ] `npm run lint`
+- [x] `npm test -- --run src/domain`
+- [x] `npm run typecheck`
+- [x] `npm run lint`
 
 **Handoff:** Document the public domain APIs and any currency edge cases in the Session Log.
 
@@ -304,6 +304,13 @@ Every implementation session must:
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
+
+### 2026-08-09 - Session 2: Money And Goal Domain
+
+- Completed: Added branded currency and identifier types; safe minor-unit parsing and locale formatting; goal creation/editing with opening transactions; immutable ledger recording, derived balances, deterministic ordering, and cascade deletion; progress and one-time completion; and integer-based withdrawal assessment.
+- Validation: `npm test -- --run src/domain` passed 47 tests across 5 files; `npm run typecheck` and `npm run lint` passed.
+- Decisions or deviations: Public APIs are `currencyCode`, `currencyFractionDigits`, `parseAmountToMinorUnits`, `formatMinorUnits`, `createGoal`, `editGoal`, `recordTransaction`, `deriveBalance`, `transactionsForGoal`, `deleteGoal`, `calculateProgress`, `recordFirstCompletion`, and `evaluateWithdrawal`. Currency input must be an uppercase three-letter code listed by `Intl.supportedValuesOf`; fraction digits come from `Intl.NumberFormat`; decimal input uses `.` at the domain boundary; formatting preserves every safe minor unit through `BigInt`; progress percentages use floor division; exact-threshold withdrawals do not warn; and displayed withdrawal impact is truncated to two decimals.
+- Next unchecked task: Session 3 - define the version-one storage envelope in `src/storage/schema.ts`.
 
 ### 2026-08-09 - Session 1: Scaffold And Quality Gates
 

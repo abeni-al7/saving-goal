@@ -8,8 +8,9 @@ Build a saving-goal application. Define the target users, primary problem, and m
 
 ## Current Status
 
-The repository has a minimal React application shell and executable formatting,
-linting, type-checking, unit-test, browser-test, build, and preview commands.
+The repository has a minimal React application shell, a tested money and saving
+goal domain, and executable formatting, linting, type-checking, unit-test,
+browser-test, build, and preview commands.
 
 ## Product Scope
 
@@ -23,15 +24,29 @@ linting, type-checking, unit-test, browser-test, build, and preview commands.
 
 ## Domain Terms
 
-Document terms whose meaning affects product behavior, such as goal, contribution, target amount, target date, and progress.
+- **Minor units:** Safe integer currency units, such as cents for USD. Balance
+  arithmetic never uses floating-point major units.
+- **Goal:** A named target with one immutable ISO currency, a positive target,
+  and a configurable whole-number withdrawal warning percentage from 0 to 100.
+- **Transaction:** An immutable opening, deposit, or withdrawal ledger record.
+  A goal balance is always derived from its transactions.
+- **Progress:** The balance divided by the target using integer floor division.
+  The displayed percentage may exceed 100%, while visual fill is capped at 100%.
+- **Completion:** The first time a balance reaches its target. Its timestamp is
+  retained even if a later withdrawal lowers the balance.
+- **Warned withdrawal:** A withdrawal strictly greater than the configured share
+  of the current balance. An exact-threshold withdrawal does not warn, and an
+  overdraft is always rejected.
 
 ## Architecture
 
 The application uses React, TypeScript, and Vite and is delivered as a static
 client-side application. Vitest and React Testing Library cover component and
 domain behavior; Playwright covers desktop, mobile, and reduced-motion browser
-workflows. Persistence and module boundaries will be documented as those
-features are implemented.
+workflows. Pure modules under `src/domain` own money parsing and formatting,
+goal lifecycle rules, immutable ledger operations, progress and completion, and
+withdrawal decisions. IDs and clocks are injected where records are created.
+Persistence will be documented when it is implemented.
 
 ## Project Commands
 
