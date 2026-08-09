@@ -113,21 +113,21 @@ Every implementation session must:
 
 **Outcome:** Valid state hydrates and persists once through a tested boundary, while corrupt or unavailable storage produces recoverable UI state.
 
-- [ ] Define the Zod-validated version-one envelope in `src/storage/schema.ts` under the key `saving-goal:state`.
-- [ ] Write failing tests for absent data, valid data, schema-invalid data, malformed JSON, disabled storage, and quota failures.
-- [ ] Implement typed load, save, reset, and raw-value preservation behavior in `src/storage/savings-storage.ts`.
-- [ ] Ensure invalid data is never automatically deleted or overwritten during hydration.
-- [ ] Add an explicit migration entry point that accepts version one and rejects unknown future versions without data loss.
-- [ ] Write reducer tests for create, edit, deposit, withdrawal, confirmed withdrawal, completion, delete, reset, and storage-status actions.
-- [ ] Implement `src/state/savings-reducer.ts` using domain functions rather than duplicating business rules.
-- [ ] Write hook tests for lazy hydration, successful persistence, session-only fallback, and surfaced persistence errors.
-- [ ] Implement `src/state/useSavings.ts` with one initial storage read and persistence after successful state changes.
+- [x] Define the Zod-validated version-one envelope in `src/storage/schema.ts` under the key `saving-goal:state`.
+- [x] Write failing tests for absent data, valid data, schema-invalid data, malformed JSON, disabled storage, and quota failures.
+- [x] Implement typed load, save, reset, and raw-value preservation behavior in `src/storage/savings-storage.ts`.
+- [x] Ensure invalid data is never automatically deleted or overwritten during hydration.
+- [x] Add an explicit migration entry point that accepts version one and rejects unknown future versions without data loss.
+- [x] Write reducer tests for create, edit, deposit, withdrawal, confirmed withdrawal, completion, delete, reset, and storage-status actions.
+- [x] Implement `src/state/savings-reducer.ts` using domain functions rather than duplicating business rules.
+- [x] Write hook tests for lazy hydration, successful persistence, session-only fallback, and surfaced persistence errors.
+- [x] Implement `src/state/useSavings.ts` with one initial storage read and persistence after successful state changes.
 
 **Validation**
 
-- [ ] `npm test -- --run src/storage src/state`
-- [ ] `npm run typecheck`
-- [ ] `npm run lint`
+- [x] `npm test -- --run src/storage src/state`
+- [x] `npm run typecheck`
+- [x] `npm run lint`
 
 **Handoff:** Record the exact storage schema, recovery states, and reducer commands in the Session Log.
 
@@ -304,6 +304,13 @@ Every implementation session must:
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
+
+### 2026-08-09 - Session 3: Storage And Application State
+
+- Completed: Added the strict Zod version-one storage envelope and migration entry point; typed load, save, reset, raw preservation, unavailable-storage, and quota behavior; a domain-backed reducer for goal, ledger, completion, warning confirmation, deletion, reset, and storage transitions; and lazy hydration with revision-gated persistence and session-only fallback.
+- Validation: `npm test -- --run src/storage src/state` passed 25 tests across 4 files; `npm run typecheck` and `npm run lint` passed.
+- Decisions or deviations: `saving-goal:state` stores `{ version: 1, state: { goals, transactions } }`; invalid JSON, invalid version-one data, and unknown versions return recovery-required state while preserving the original string; unavailable storage can continue session-only; quota and access failures retain in-memory changes as save-error state. Reducer commands are `goal/create`, `goal/edit`, `transaction/deposit`, `withdrawal/request`, `withdrawal/confirm`, `withdrawal/cancel`, `goal/delete`, `savings/reset`, and `storage/status`.
+- Next unchecked task: Session 4 - write component tests for the goal form dialog.
 
 ### 2026-08-09 - Session 2: Money And Goal Domain
 

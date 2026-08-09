@@ -9,7 +9,8 @@ Build a saving-goal application. Define the target users, primary problem, and m
 ## Current Status
 
 The repository has a minimal React application shell, a tested money and saving
-goal domain, and executable formatting, linting, type-checking, unit-test,
+goal domain, a validated local-storage boundary and reducer-driven application
+state, and executable formatting, linting, type-checking, unit-test,
 browser-test, build, and preview commands.
 
 ## Product Scope
@@ -46,7 +47,20 @@ domain behavior; Playwright covers desktop, mobile, and reduced-motion browser
 workflows. Pure modules under `src/domain` own money parsing and formatting,
 goal lifecycle rules, immutable ledger operations, progress and completion, and
 withdrawal decisions. IDs and clocks are injected where records are created.
-Persistence will be documented when it is implemented.
+Application state hydrates once through `useSavings` and persists successful
+durable changes through a revision-gated effect.
+
+## Persistence And Recovery
+
+- The local-storage key is `saving-goal:state`.
+- Version one stores `{ version: 1, state: { goals, transactions } }` and is
+  validated with a strict Zod schema before entering application state.
+- Missing data starts with an empty state. Valid data hydrates normally.
+- Malformed JSON, schema-invalid data, and unknown versions are preserved
+  byte-for-byte and require an explicit reset or session-only decision.
+- Unavailable storage permits explicit session-only use. Save failures retain
+  in-memory changes and surface a recoverable status.
+- Only an explicit reset removes stored data.
 
 ## Project Commands
 
