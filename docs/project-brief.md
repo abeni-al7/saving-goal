@@ -8,12 +8,14 @@ Build a saving-goal application. Define the target users, primary problem, and m
 
 ## Current Status
 
-The repository has a responsive React goal-management dashboard; accessible
-create, edit, permanent-delete, deposit, withdrawal, and large-withdrawal
-confirmation flows; localized transaction activity; a tested money and saving
-goal domain; a validated local-storage boundary and reducer-driven application
-state; and executable formatting, linting, type-checking, unit-test,
-browser-test, build, and preview commands.
+The repository has a responsive editorial React goal-management dashboard with
+accessible animated progress, overfunding and persisted completion states,
+per-goal localized balances and activity, and icon-based goal controls. Create,
+edit, permanent-delete, deposit, withdrawal, and large-withdrawal confirmation
+flows are implemented over a tested money and saving-goal domain, a validated
+local-storage boundary, and reducer-driven application state. Formatting,
+linting, type-checking, unit-test, browser-test, build, and preview commands are
+executable.
 
 ## Product Scope
 

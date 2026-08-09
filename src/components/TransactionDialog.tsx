@@ -1,3 +1,4 @@
+import { CirclePlus } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { formatMinorUnits, parseAmountToMinorUnits } from "../domain/money";
 import { calculateProgress } from "../domain/progress";
@@ -82,7 +83,8 @@ export function TransactionDialog({
   return (
     <>
       <button
-        className="button button--primary"
+        aria-label={`Add transaction for ${goal.name}`}
+        className="button button--icon button--icon-primary tooltip-control"
         ref={triggerRef}
         type="button"
         onClick={() => {
@@ -95,7 +97,10 @@ export function TransactionDialog({
           setIsOpen(true);
         }}
       >
-        Add transaction for {goal.name}
+        <CirclePlus aria-hidden="true" size={19} strokeWidth={1.8} />
+        <span aria-hidden="true" className="tooltip">
+          Add transaction
+        </span>
       </button>
 
       {isOpen ? (

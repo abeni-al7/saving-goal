@@ -8,11 +8,10 @@ import type {
   PendingWithdrawal,
   SavingsAction,
 } from "../state/savings-reducer";
-import { ActivityList } from "./ActivityList";
-import { DeleteGoalDialog } from "./DeleteGoalDialog";
 import { EmptyState } from "./EmptyState";
+import { GoalCard } from "./GoalCard";
 import { GoalFormDialog } from "./GoalFormDialog";
-import { TransactionDialog, type TransactionMode } from "./TransactionDialog";
+import type { TransactionMode } from "./TransactionDialog";
 import { WithdrawalWarningDialog } from "./WithdrawalWarningDialog";
 
 interface GoalsDashboardProps {
@@ -102,47 +101,25 @@ export function GoalsDashboard({
           </div>
           <div className="goals-list">
             {savings.goals.map((goal) => (
-              <article className="goal-item" key={goal.id}>
-                <h3>{goal.name}</h3>
-                <div className="goal-item__actions">
-                  <TransactionDialog
-                    currentBalanceMinorUnits={deriveBalance(
-                      goal.id,
-                      savings.transactions,
-                    )}
-                    goal={goal}
-                    onOpen={(trigger) => {
-                      transactionReturnFocusRef.current = trigger;
-                    }}
-                    onSubmit={(mode, amountMinorUnits) =>
-                      recordTransaction(goal, mode, amountMinorUnits)
-                    }
-                  />
-                  <GoalFormDialog
-                    mode="edit"
-                    goal={goal}
-                    openingBalanceMinorUnits={
-                      savings.transactions.find(
-                        (transaction) =>
-                          transaction.goalId === goal.id &&
-                          transaction.kind === "opening",
-                      )?.amountMinorUnits ?? 0
-                    }
-                    onSubmit={(input) => {
-                      dispatch({ type: "goal/edit", goalId: goal.id, input });
-                      setAnnouncement(`${input.name.trim()} updated.`);
-                    }}
-                  />
-                  <DeleteGoalDialog
-                    goal={goal}
-                    onConfirm={(goalId) => {
-                      dispatch({ type: "goal/delete", goalId });
-                      setAnnouncement(`${goal.name} deleted.`);
-                    }}
-                  />
-                </div>
-                <ActivityList goal={goal} transactions={savings.transactions} />
-              </article>
+              <GoalCard
+                goal={goal}
+                key={goal.id}
+                transactions={savings.transactions}
+                onDelete={(goalId) => {
+                  dispatch({ type: "goal/delete", goalId });
+                  setAnnouncement(`${goal.name} deleted.`);
+                }}
+                onEdit={(input) => {
+                  dispatch({ type: "goal/edit", goalId: goal.id, input });
+                  setAnnouncement(`${input.name.trim()} updated.`);
+                }}
+                onRecordTransaction={(mode, amountMinorUnits) =>
+                  recordTransaction(goal, mode, amountMinorUnits)
+                }
+                onTransactionOpen={(trigger) => {
+                  transactionReturnFocusRef.current = trigger;
+                }}
+              />
             ))}
           </div>
         </section>

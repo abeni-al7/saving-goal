@@ -105,6 +105,15 @@ describe("GoalsDashboard", () => {
     );
   });
 
+  it("keeps mixed currencies per goal without presenting a combined total", () => {
+    render(<DashboardHarness initialSavings={savingsWithGoals()} />);
+
+    expect(screen.getByRole("button", { name: "Add goal" })).toBeVisible();
+    expect(screen.getAllByText("$50.00")).toHaveLength(2);
+    expect(screen.getAllByText("¥10,000")).toHaveLength(2);
+    expect(screen.queryByText(/total savings/i)).not.toBeInTheDocument();
+  });
+
   it("edits and deletes a goal with success announcements", async () => {
     const user = userEvent.setup();
     render(<DashboardHarness initialSavings={savingsWithGoals()} />);

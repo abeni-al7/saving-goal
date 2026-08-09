@@ -1,3 +1,4 @@
+import { Trash2 } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import type { Goal, GoalId } from "../domain/types";
 import { containDialogFocus } from "./dialog-focus";
@@ -34,12 +35,16 @@ export function DeleteGoalDialog({ goal, onConfirm }: DeleteGoalDialogProps) {
   return (
     <>
       <button
-        className="button button--danger-text"
+        aria-label={`Delete ${goal.name}`}
+        className="button button--icon button--danger-text tooltip-control"
         ref={triggerRef}
         type="button"
         onClick={() => setIsOpen(true)}
       >
-        Delete {goal.name}
+        <Trash2 aria-hidden="true" size={18} strokeWidth={1.8} />
+        <span aria-hidden="true" className="tooltip">
+          Delete goal
+        </span>
       </button>
 
       {isOpen ? (

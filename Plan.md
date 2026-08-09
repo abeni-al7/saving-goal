@@ -190,24 +190,24 @@ Every implementation session must:
 
 **Outcome:** The complete dashboard presents each goal clearly with an engaging, accessible progress experience across mobile and desktop.
 
-- [ ] Write tests for progress semantics, zero progress, overfunding, accessible values, and reduced-motion behavior.
-- [ ] Implement `src/components/ProgressMeter.tsx` with a transform-based fill capped at 100% and visible percentage allowed above 100%.
-- [ ] Implement a synchronized percentage transition and spring fill using Motion without animating layout dimensions.
-- [ ] Persist first completion so the completion accent plays once and does not replay after refresh.
-- [ ] Provide an immediate nonanimated completion state under `prefers-reduced-motion`.
-- [ ] Write tests for balance/target formatting, long goal names, action labels, completion state, and recent activity in a goal item.
-- [ ] Implement `src/components/GoalCard.tsx` with Lucide icon controls and text tooltips.
-- [ ] Finish `GoalsDashboard` with goal-count and completion-count summaries, an obvious add action, and no cross-currency total.
-- [ ] Implement the optimistic editorial visual system in `src/styles/global.css`: bundled expressive fonts, ledger-line texture, restrained multicolor tokens, stable controls, compact radii no greater than 8px, and full-width unframed regions.
-- [ ] Ensure long names, currencies, percentages, and action controls do not clip or overlap at supported viewport widths.
+- [x] Write tests for progress semantics, zero progress, overfunding, accessible values, and reduced-motion behavior.
+- [x] Implement `src/components/ProgressMeter.tsx` with a transform-based fill capped at 100% and visible percentage allowed above 100%.
+- [x] Implement a synchronized percentage transition and spring fill using Motion without animating layout dimensions.
+- [x] Persist first completion so the completion accent plays once and does not replay after refresh.
+- [x] Provide an immediate nonanimated completion state under `prefers-reduced-motion`.
+- [x] Write tests for balance/target formatting, long goal names, action labels, completion state, and recent activity in a goal item.
+- [x] Implement `src/components/GoalCard.tsx` with Lucide icon controls and text tooltips.
+- [x] Finish `GoalsDashboard` with goal-count and completion-count summaries, an obvious add action, and no cross-currency total.
+- [x] Implement the optimistic editorial visual system in `src/styles/global.css`: bundled expressive fonts, ledger-line texture, restrained multicolor tokens, stable controls, compact radii no greater than 8px, and full-width unframed regions.
+- [x] Ensure long names, currencies, percentages, and action controls do not clip or overlap at supported viewport widths.
 
 **Validation**
 
-- [ ] `npm test -- --run src/components/ProgressMeter src/components/GoalCard src/components/GoalsDashboard`
-- [ ] `npm run format:check`
-- [ ] `npm run typecheck`
-- [ ] `npm run lint`
-- [ ] `npm run build`
+- [x] `npm test -- --run src/components/ProgressMeter src/components/GoalCard src/components/GoalsDashboard`
+- [x] `npm run format:check`
+- [x] `npm run typecheck`
+- [x] `npm run lint`
+- [x] `npm run build`
 
 **Handoff:** Record animation behavior, responsive breakpoints, and remaining accessibility checks in the Session Log.
 
@@ -304,6 +304,13 @@ Every implementation session must:
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
+
+### 2026-08-09 - Session 6: Goal Presentation And Motion
+
+- Completed: Added an accessible Motion progress meter with synchronized spring percentage/fill, capped visual and ARIA range, visible overfunding, transition-only completion accent, and immediate reduced-motion state; composed formatted balances, targets, completion state, recent activity, and Lucide tooltip actions in a responsive goal card; retained per-goal currencies and dashboard counts without aggregation; and introduced locally bundled Fraunces/IBM Plex Sans, ledger lines, restrained multicolor accents, and stable responsive controls.
+- Validation: Focused Session 6 suites passed 15 tests; `npm run format:check`, `npm run typecheck`, `npm run lint`, and `npm run build` passed. Seeded Chromium checks at 1440x1000 and 360x800 found no horizontal overflow, kept long names and USD/JPY balances within their regions and on one numeric line, and confirmed reduced motion reports a settled nonanimated completion state. Desktop and mobile screenshots were inspected with visible progress fills and no collisions.
+- Decisions or deviations: The existing persisted `completedAt` remains the completion replay guard; goals complete on initial hydration render settled, while only an in-session undefined-to-defined transition plays the accent. The layout changes at 48rem from a single-column flow to an asymmetric two-column goal region. Font imports use Latin-only package entry points. Session 7 still owns the full contrast, assistive-technology, live-region, focus-order, and keyboard audit.
+- Next unchecked task: Session 7 - write recovery UI tests for unavailable, quota-failed, and corrupt storage states.
 
 ### 2026-08-09 - Session 5: Deposits, Withdrawals, And Activity
 

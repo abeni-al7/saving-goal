@@ -1,3 +1,4 @@
+import { Pencil } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import type { CreateGoalInput, EditGoalInput } from "../domain/goals";
 import {
@@ -110,7 +111,12 @@ export function GoalFormDialog(props: GoalFormDialogProps) {
   return (
     <>
       <button
-        className={isEdit ? "button button--quiet" : "button button--primary"}
+        aria-label={goal === null ? undefined : `Edit ${goal.name}`}
+        className={
+          isEdit
+            ? "button button--icon tooltip-control"
+            : "button button--primary"
+        }
         ref={triggerRef}
         type="button"
         onClick={() => {
@@ -118,7 +124,16 @@ export function GoalFormDialog(props: GoalFormDialogProps) {
           setIsOpen(true);
         }}
       >
-        {goal === null ? "Add goal" : `Edit ${goal.name}`}
+        {goal === null ? (
+          "Add goal"
+        ) : (
+          <>
+            <Pencil aria-hidden="true" size={18} strokeWidth={1.8} />
+            <span aria-hidden="true" className="tooltip">
+              Edit goal
+            </span>
+          </>
+        )}
       </button>
 
       {isOpen ? (
