@@ -365,8 +365,8 @@ main {
 
 .goal-card__actions {
   grid-area: actions;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: var(--space-2);
 }
@@ -456,14 +456,44 @@ main {
   overflow-wrap: anywhere;
 }
 
-.activity-list {
+.activity-disclosure {
   grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.activity-disclosure__trigger {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) 0;
+  border: 0;
+  color: var(--color-blue);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.activity-disclosure__trigger:hover {
+  color: var(--color-ink);
+}
+
+.activity-disclosure__chevron {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+}
+
+.activity-list {
   display: grid;
   gap: 0;
   margin: 0;
   padding: 0;
   border-top: 1px solid var(--color-line);
   list-style: none;
+  overflow: hidden;
 }
 
 .activity-list li {
@@ -493,9 +523,23 @@ main {
   white-space: nowrap;
 }
 
-.activity-list__reason {
+.activity-list__reason-note {
+  display: grid;
+  gap: var(--space-1);
   max-width: 42rem;
-  margin: var(--space-1) 0 0;
+  margin-top: var(--space-1);
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--color-line);
+}
+
+.activity-list__reason-label {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.activity-list__reason {
+  margin: 0;
   overflow-wrap: anywhere;
   line-height: 1.45;
 }
@@ -569,6 +613,22 @@ main {
 }
 
 .button--icon-primary:hover {
+  color: var(--color-surface);
+  background: var(--color-progress);
+}
+
+.button--transaction {
+  display: inline-flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  color: var(--color-surface);
+  background: var(--color-progress-dark);
+}
+
+.button--transaction:hover {
   color: var(--color-surface);
   background: var(--color-progress);
 }

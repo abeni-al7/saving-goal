@@ -109,8 +109,8 @@ describe("GoalsDashboard", () => {
     render(<DashboardHarness initialSavings={savingsWithGoals()} />);
 
     expect(screen.getByRole("button", { name: "Add goal" })).toBeVisible();
-    expect(screen.getAllByText("$50.00")).toHaveLength(2);
-    expect(screen.getAllByText("¥10,000")).toHaveLength(2);
+    expect(screen.getByText("$50.00")).toBeInTheDocument();
+    expect(screen.getByText("¥10,000")).toBeInTheDocument();
     expect(screen.queryByText(/total savings/i)).not.toBeInTheDocument();
   });
 
@@ -168,6 +168,7 @@ describe("GoalsDashboard", () => {
     expect(screen.getByRole("status")).toHaveTextContent(
       "$10.00 withdrawn from Emergency fund.",
     );
+    await user.click(screen.getByRole("button", { name: "Show 2 activities" }));
     expect(
       screen.getByRole("list", { name: "Activity for Emergency fund" }),
     ).toHaveTextContent("-$10.00");
@@ -182,6 +183,10 @@ describe("GoalsDashboard", () => {
     const transactionTrigger = screen.getByRole("button", {
       name: "Add transaction for Emergency fund",
     });
+
+    await user.click(
+      screen.getAllByRole("button", { name: "Show 1 activities" })[0],
+    );
 
     await user.click(transactionTrigger);
     await user.click(screen.getByRole("button", { name: "Withdrawal" }));
@@ -237,6 +242,10 @@ describe("GoalsDashboard", () => {
     const transactionTrigger = screen.getByRole("button", {
       name: "Add transaction for Emergency fund",
     });
+
+    await user.click(
+      screen.getAllByRole("button", { name: "Show 1 activities" })[0],
+    );
 
     await user.click(transactionTrigger);
     await user.click(screen.getByRole("button", { name: "Withdrawal" }));

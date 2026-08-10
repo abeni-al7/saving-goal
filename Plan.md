@@ -443,25 +443,25 @@ Every implementation session must:
 
 **Outcome:** Goal cards keep their established editorial composition while exposing a clearer primary transaction action and a compact, accessible activity disclosure whose complete ledger reads newest to oldest.
 
-- [ ] Write failing `ActivityList` tests for a fully collapsed default, an entry-count label, `aria-expanded` and `aria-controls`, expansion, collapse, and an empty goal without a meaningless disclosure control.
-- [ ] Write failing `ActivityList` tests proving expansion reveals every matching transaction newest to oldest, with timestamp and transaction ID still providing deterministic tie behavior through the existing domain ordering helper.
-- [ ] Write failing reason-presentation tests for a visible `Reason` label, full untruncated text, omission when no reason exists, and a 160-character reason remaining attached to its matching withdrawal.
-- [ ] Update `src/components/ActivityList.tsx` with local disclosure state only; reverse a copied `transactionsForGoal` result at the presentation boundary without changing the domain helper, persisted state, or immutable records.
-- [ ] Add a goal-specific controlled-region ID and a text disclosure button with a Lucide chevron; use `Show N activities` while closed and `Hide activity` while open.
-- [ ] Render optional withdrawal reasons as secondary notes inside their matching rows, with a compact visible `Reason` label and the existing `data-testid="withdrawal-reason"` retained on the reason text.
-- [ ] Style the disclosure and reason note in `src/styles/global.css` using the existing ledger language: compact spacing, a muted left rule, normal body weight, robust wrapping, and no nested card, badge, speech bubble, tooltip, truncation, or internal scrolling region.
-- [ ] Use `AnimatePresence` to reveal or hide the ledger as one calm region and rotate the chevron subtly; set `initial={false}` and render immediate final states under reduced motion rather than staggering historical rows.
-- [ ] Write failing `GoalCard` tests for a visible icon-plus-text Add transaction control while preserving direct, compact edit and delete actions with their existing accessible names.
-- [ ] Update `TransactionDialog.tsx`, `GoalCard.tsx`, and `src/styles/global.css` so Add transaction is the visually dominant action, edit and delete remain directly available, narrow layouts use stable `minmax(0, 1fr) auto auto` tracks, and every target remains at least 44px.
-- [ ] Re-run affected dashboard tests and update assertions that previously assumed the activity list was always mounted or ordered oldest first.
+- [x] Write failing `ActivityList` tests for a fully collapsed default, an entry-count label, `aria-expanded` and `aria-controls`, expansion, collapse, and an empty goal without a meaningless disclosure control.
+- [x] Write failing `ActivityList` tests proving expansion reveals every matching transaction newest to oldest, with timestamp and transaction ID still providing deterministic tie behavior through the existing domain ordering helper.
+- [x] Write failing reason-presentation tests for a visible `Reason` label, full untruncated text, omission when no reason exists, and a 160-character reason remaining attached to its matching withdrawal.
+- [x] Update `src/components/ActivityList.tsx` with local disclosure state only; reverse a copied `transactionsForGoal` result at the presentation boundary without changing the domain helper, persisted state, or immutable records.
+- [x] Add a goal-specific controlled-region ID and a text disclosure button with a Lucide chevron; use `Show N activities` while closed and `Hide activity` while open.
+- [x] Render optional withdrawal reasons as secondary notes inside their matching rows, with a compact visible `Reason` label and the existing `data-testid="withdrawal-reason"` retained on the reason text.
+- [x] Style the disclosure and reason note in `src/styles/global.css` using the existing ledger language: compact spacing, a muted left rule, normal body weight, robust wrapping, and no nested card, badge, speech bubble, tooltip, truncation, or internal scrolling region.
+- [x] Use `AnimatePresence` to reveal or hide the ledger as one calm region and rotate the chevron subtly; set `initial={false}` and render immediate final states under reduced motion rather than staggering historical rows.
+- [x] Write failing `GoalCard` tests for a visible icon-plus-text Add transaction control while preserving direct, compact edit and delete actions with their existing accessible names.
+- [x] Update `TransactionDialog.tsx`, `GoalCard.tsx`, and `src/styles/global.css` so Add transaction is the visually dominant action, edit and delete remain directly available, narrow layouts use stable `minmax(0, 1fr) auto auto` tracks, and every target remains at least 44px.
+- [x] Re-run affected dashboard tests and update assertions that previously assumed the activity list was always mounted or ordered oldest first.
 
 **Validation**
 
-- [ ] `npm test -- --run src/components/ActivityList.test.tsx src/components/GoalCard.test.tsx src/components/GoalsDashboard.test.tsx`
-- [ ] `npm run format:check`
-- [ ] `npm run typecheck`
-- [ ] `npm run lint`
-- [ ] Workspace diagnostics report no relevant errors.
+- [x] `npm test -- --run src/components/ActivityList.test.tsx src/components/GoalCard.test.tsx src/components/GoalsDashboard.test.tsx`
+- [x] `npm run format:check`
+- [x] `npm run typecheck`
+- [x] `npm run lint`
+- [x] Workspace diagnostics report no relevant errors.
 
 **Handoff:** Record disclosure labels and semantics, newest-first presentation behavior, reason-note treatment, action hierarchy, reduced-motion behavior, and focused test results in the Session Log.
 
@@ -566,6 +566,13 @@ Every implementation session must:
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
+
+### 2026-08-10 - Session 14: Activity Disclosure And Goal Actions
+
+- Completed: Replaced the always-mounted ledger with a collapsed, count-aware activity disclosure using goal-specific `aria-controls`, `aria-expanded`, a Lucide chevron, and one `AnimatePresence` region; presented the complete immutable ledger newest first by reversing the existing deterministic domain result only at the UI boundary; added compact, visibly labeled, untruncated withdrawal reason notes; and made Add transaction a persistent icon-plus-text primary action beside directly available 44px edit and delete controls in stable responsive grid tracks.
+- Validation: The focused Session 14 command passed 18 tests across `ActivityList`, `GoalCard`, and `GoalsDashboard`; `npm run format:check`, `npm run typecheck`, and `npm run lint` passed; workspace diagnostics and `git diff --check` were clean. Red tests first failed on the absent disclosure, oldest-first mounted ledger, tooltip-only transaction action, and missing reduced-motion marker.
+- Decisions or deviations: `transactionsForGoal` and persisted records remain unchanged; its copied result is reversed for newest-first display, including reverse timestamp-and-ID tie order. Empty goals retain plain `No activity yet.` text with no disclosure. Reasons remain attached to their withdrawal row under a muted left rule with the existing test ID. Motion uses a subtle region fade and 6px travel plus chevron rotation, while reduced motion uses zero-duration final states and no row staggering.
+- Next unchecked task: Session 15 - introduce the shared responsive dialog surface and coordinate focus restoration with animated exits.
 
 ### 2026-08-10 - Session 13: Feature Integration And Release Gate
 

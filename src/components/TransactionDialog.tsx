@@ -94,7 +94,7 @@ export function TransactionDialog({
     <>
       <button
         aria-label={`Add transaction for ${goal.name}`}
-        className="button button--icon button--icon-primary tooltip-control"
+        className="button button--transaction"
         ref={triggerRef}
         type="button"
         onClick={() => {
@@ -109,9 +109,7 @@ export function TransactionDialog({
         }}
       >
         <CirclePlus aria-hidden="true" size={19} strokeWidth={1.8} />
-        <span aria-hidden="true" className="tooltip">
-          Add transaction
-        </span>
+        <span>Add transaction</span>
       </button>
 
       {isOpen ? (

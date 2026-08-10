@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { currencyCode } from "../domain/money";
 import type { Goal, GoalId, Transaction, TransactionId } from "../domain/types";
@@ -68,7 +68,7 @@ describe("GoalCard", () => {
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
 
-  it("formats the balance and target and presents recent activity", () => {
+  it("formats the balance and target and presents collapsed activity", () => {
     render(<GoalCard goal={goal} transactions={transactions} {...callbacks} />);
 
     expect(screen.getByText("$500.00")).toBeInTheDocument();
@@ -82,11 +82,14 @@ describe("GoalCard", () => {
       screen.getByRole("heading", { name: "Recent activity" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("list", { name: "Activity for Emergency fund" }),
-    ).toHaveTextContent("Deposit");
+      screen.getByRole("button", { name: "Show 2 activities" }),
+    ).toHaveAttribute("aria-expanded", "false");
+    expect(
+      screen.queryByRole("list", { name: "Activity for Emergency fund" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("preserves a long goal name and exposes concise action labels", () => {
+  it("makes Add transaction visible while preserving compact goal actions", () => {
     const longName =
       "A deliberately long multigenerational family sabbatical and learning fund";
     render(
@@ -100,19 +103,20 @@ describe("GoalCard", () => {
     expect(screen.getByRole("heading", { name: longName })).toHaveTextContent(
       longName,
     );
+    const transactionAction = screen.getByRole("button", {
+      name: `Add transaction for ${longName}`,
+    });
+    expect(transactionAction).toHaveTextContent("Add transaction");
     expect(
-      screen.getByRole("button", { name: `Add transaction for ${longName}` }),
-    ).toBeInTheDocument();
+      within(transactionAction).getByText("Add transaction"),
+    ).not.toHaveAttribute("aria-hidden");
+    expect(transactionAction.querySelector("svg")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: `Edit ${longName}` }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: `Delete ${longName}` }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Add transaction")).toHaveAttribute(
-      "aria-hidden",
-      "true",
-    );
     expect(screen.getByText("Edit goal")).toHaveAttribute(
       "aria-hidden",
       "true",
