@@ -1,5 +1,6 @@
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
+import { normalizeGoalIcon } from "../browser/goal-icon-upload";
 import type { CreateGoalInput, EditGoalInput } from "../domain/goals";
 import {
   currencyCode,
@@ -38,10 +39,15 @@ type CompleteCreateGoalInput = CreateGoalInput & {
 export function GoalFormDialog(props: GoalFormDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [iconDataUrl, setIconDataUrl] = useState<string>();
+  const [iconError, setIconError] = useState<string>();
+  const [isProcessingArtwork, setIsProcessingArtwork] = useState(false);
   const titleId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLElement>(null);
+  const uploadControllerRef = useRef<AbortController>(null);
+  const uploadSequenceRef = useRef(0);
 
   useEffect(() => {
     if (isOpen) {
@@ -50,14 +56,68 @@ export function GoalFormDialog(props: GoalFormDialogProps) {
   }, [isOpen]);
 
   function closeDialog(): void {
+    cancelPendingUpload();
     setIsOpen(false);
+    setIsProcessingArtwork(false);
     queueMicrotask(() => triggerRef.current?.focus());
+  }
+
+  function openDialog(): void {
+    cancelPendingUpload();
+    setErrors({});
+    setIconError(undefined);
+    setIconDataUrl(props.mode === "edit" ? props.goal.iconDataUrl : undefined);
+    setIsProcessingArtwork(false);
+    setIsOpen(true);
+  }
+
+  function cancelPendingUpload(): void {
+    uploadSequenceRef.current += 1;
+    uploadControllerRef.current?.abort();
+    uploadControllerRef.current = null;
+  }
+
+  async function handleArtworkSelection(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ): Promise<void> {
+    const file = event.currentTarget.files?.[0];
+    if (file === undefined) {
+      return;
+    }
+
+    cancelPendingUpload();
+    const sequence = uploadSequenceRef.current;
+    const controller = new AbortController();
+    uploadControllerRef.current = controller;
+    setIconError(undefined);
+    setIsProcessingArtwork(true);
+
+    try {
+      const normalizedIcon = await normalizeGoalIcon(file, {
+        signal: controller.signal,
+      });
+      if (sequence === uploadSequenceRef.current) {
+        setIconDataUrl(normalizedIcon);
+      }
+    } catch (error) {
+      if (
+        sequence === uploadSequenceRef.current &&
+        !(error instanceof DOMException && error.name === "AbortError")
+      ) {
+        setIconError(errorMessage(error));
+      }
+    } finally {
+      if (sequence === uploadSequenceRef.current) {
+        uploadControllerRef.current = null;
+        setIsProcessingArtwork(false);
+      }
+    }
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const editableInput: EditGoalInput = {
+    const editableFields = {
       name: String(formData.get("name") ?? ""),
       targetAmount: String(formData.get("targetAmount") ?? ""),
       withdrawalWarningPercent: Number(
@@ -66,6 +126,15 @@ export function GoalFormDialog(props: GoalFormDialogProps) {
     };
 
     if (props.mode === "edit") {
+      const editableInput: EditGoalInput = {
+        ...editableFields,
+        artwork:
+          iconDataUrl === props.goal.iconDataUrl
+            ? { type: "preserve" }
+            : iconDataUrl === undefined
+              ? { type: "remove" }
+              : { type: "replace", iconDataUrl },
+      };
       const nextErrors = validateEditInput(editableInput, props.goal);
       if (showErrors(nextErrors)) {
         return;
@@ -77,11 +146,12 @@ export function GoalFormDialog(props: GoalFormDialogProps) {
     }
 
     const input: CompleteCreateGoalInput = {
-      ...editableInput,
+      ...editableFields,
       openingBalanceAmount: String(formData.get("openingBalanceAmount") ?? ""),
       currency: String(formData.get("currency") ?? "")
         .trim()
         .toUpperCase(),
+      ...(iconDataUrl === undefined ? {} : { iconDataUrl }),
     };
     const nextErrors = validateCreateInput(input);
 
@@ -119,10 +189,7 @@ export function GoalFormDialog(props: GoalFormDialogProps) {
         }
         ref={triggerRef}
         type="button"
-        onClick={() => {
-          setErrors({});
-          setIsOpen(true);
-        }}
+        onClick={openDialog}
       >
         {goal === null ? (
           "Add goal"
@@ -285,6 +352,58 @@ export function GoalFormDialog(props: GoalFormDialogProps) {
                 </p>
               )}
 
+              <div className="goal-artwork-field">
+                <label htmlFor={`${titleId}-artwork`}>
+                  {iconDataUrl === undefined
+                    ? "Goal artwork (optional)"
+                    : "Replace artwork"}
+                </label>
+                <input
+                  accept="image/png,image/jpeg,image/webp"
+                  aria-describedby={
+                    iconError === undefined
+                      ? undefined
+                      : `${titleId}-artwork-error`
+                  }
+                  aria-invalid={iconError === undefined ? undefined : true}
+                  id={`${titleId}-artwork`}
+                  name="artwork"
+                  type="file"
+                  onChange={(event) => void handleArtworkSelection(event)}
+                  onClick={(event) => {
+                    event.currentTarget.value = "";
+                  }}
+                />
+                {iconError === undefined ? null : (
+                  <p className="field-error" id={`${titleId}-artwork-error`}>
+                    {iconError}
+                  </p>
+                )}
+                {isProcessingArtwork ? (
+                  <p className="goal-artwork-field__status" role="status">
+                    Processing artwork...
+                  </p>
+                ) : null}
+                {iconDataUrl === undefined ? null : (
+                  <div className="goal-artwork-preview">
+                    <img alt="Goal artwork preview" src={iconDataUrl} />
+                    <button
+                      className="button button--quiet"
+                      type="button"
+                      onClick={() => {
+                        cancelPendingUpload();
+                        setIsProcessingArtwork(false);
+                        setIconError(undefined);
+                        setIconDataUrl(undefined);
+                      }}
+                    >
+                      <Trash2 aria-hidden="true" size={17} strokeWidth={1.8} />
+                      Remove artwork
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div className="dialog-actions">
                 <button
                   className="button button--quiet"
@@ -293,7 +412,11 @@ export function GoalFormDialog(props: GoalFormDialogProps) {
                 >
                   Cancel
                 </button>
-                <button className="button button--primary" type="submit">
+                <button
+                  className="button button--primary"
+                  disabled={isProcessingArtwork}
+                  type="submit"
+                >
                   {isEdit ? "Save changes" : "Create goal"}
                 </button>
               </div>

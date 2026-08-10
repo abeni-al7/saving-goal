@@ -11,6 +11,9 @@ function providers(...ids: string[]): DomainProviders {
 }
 
 describe("goals", () => {
+  const firstIconDataUrl = "data:image/png;base64,AAAA";
+  const replacementIconDataUrl = "data:image/png;base64,AQID";
+
   it("creates a goal and its opening-balance transaction", () => {
     const result = createGoal(
       {
@@ -55,6 +58,51 @@ describe("goals", () => {
     expect(result.openingTransaction.amountMinorUnits).toBe(0);
   });
 
+  it("creates a goal with optional artwork", () => {
+    const { goal } = createGoal(
+      {
+        name: "Camera",
+        targetAmount: "1200",
+        openingBalanceAmount: "0",
+        currency: "USD",
+        iconDataUrl: firstIconDataUrl,
+      },
+      providers("goal-artwork", "transaction-artwork"),
+    );
+
+    expect(goal.iconDataUrl).toBe(firstIconDataUrl);
+  });
+
+  it.each([
+    ["preserves", { type: "preserve" } as const, firstIconDataUrl],
+    [
+      "replaces",
+      { type: "replace", iconDataUrl: replacementIconDataUrl } as const,
+      replacementIconDataUrl,
+    ],
+    ["removes", { type: "remove" } as const, undefined],
+  ])("%s existing artwork while editing", (_label, artwork, expected) => {
+    const { goal } = createGoal(
+      {
+        name: "Camera",
+        targetAmount: "1200",
+        openingBalanceAmount: "0",
+        currency: "USD",
+        iconDataUrl: firstIconDataUrl,
+      },
+      providers("goal-artwork", "transaction-artwork"),
+    );
+
+    const editedGoal = editGoal(goal, {
+      name: goal.name,
+      targetAmount: "1500",
+      withdrawalWarningPercent: 20,
+      artwork,
+    });
+
+    expect(editedGoal.iconDataUrl).toBe(expected);
+  });
+
   it("edits only the mutable goal fields", () => {
     const { goal } = createGoal(
       {
@@ -70,6 +118,7 @@ describe("goals", () => {
       name: "Long trip",
       targetAmount: "1200.50",
       withdrawalWarningPercent: 15,
+      artwork: { type: "preserve" } as const,
       currency: "JPY",
       openingBalanceAmount: "999",
     };

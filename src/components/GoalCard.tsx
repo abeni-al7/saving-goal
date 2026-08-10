@@ -47,13 +47,22 @@ export function GoalCard({
       data-goal-state={goal.completedAt === undefined ? "active" : "complete"}
     >
       <header className="goal-card__header">
-        <h3 id={titleId}>{goal.name}</h3>
-        {goal.completedAt === undefined ? null : (
-          <span className="goal-card__complete">
-            <CircleCheck aria-hidden="true" size={17} strokeWidth={2} />
-            Goal complete
-          </span>
-        )}
+        <div className="goal-card__identity">
+          {goal.iconDataUrl === undefined ? null : (
+            <span aria-hidden="true" className="goal-card__artwork">
+              <img alt="" src={goal.iconDataUrl} />
+            </span>
+          )}
+          <div className="goal-card__heading">
+            <h3 id={titleId}>{goal.name}</h3>
+            {goal.completedAt === undefined ? null : (
+              <span className="goal-card__complete">
+                <CircleCheck aria-hidden="true" size={17} strokeWidth={2} />
+                Goal complete
+              </span>
+            )}
+          </div>
+        </div>
       </header>
 
       <div className="goal-card__balance">

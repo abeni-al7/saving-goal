@@ -56,9 +56,9 @@ Every implementation session must:
 - [x] A user can optionally add a withdrawal reason; blank reasons are omitted and nonblank reasons are trimmed and limited to 160 characters.
 - [x] An ordinary or warned withdrawal preserves its reason in exactly one immutable ledger record and displays it with the matching activity entry.
 - [x] Deposits and opening balances cannot receive withdrawal-reason metadata.
-- [ ] A user can add goal artwork while creating a goal and replace or remove it while editing without canceled changes leaking into saved state.
-- [ ] Goal artwork accepts decoded PNG, JPEG, and WebP sources no larger than 2 MB, preserves aspect ratio without cropping, and is normalized locally to a PNG no larger than 128px or 100 KB.
-- [ ] Each goal displays its artwork in a stable 56px region beside the goal name without clipping, overlap, or layout shifts on supported mobile and desktop viewports.
+- [x] A user can add goal artwork while creating a goal and replace or remove it while editing without canceled changes leaking into saved state.
+- [x] Goal artwork accepts decoded PNG, JPEG, and WebP sources no larger than 2 MB, preserves aspect ratio without cropping, and is normalized locally to a PNG no larger than 128px or 100 KB.
+- [x] Each goal displays its artwork in a stable 56px region beside the goal name without clipping, overlap, or layout shifts on supported mobile and desktop viewports.
 - [x] Valid version-one data migrates without user intervention, new changes persist as version two, and malformed or unsupported data remains preserved for recovery.
 
 ---
@@ -375,27 +375,27 @@ Every implementation session must:
 
 **Outcome:** Users can add, preview, replace, remove, and persist reasonably sized goal artwork without leaving the browser or destabilizing local storage.
 
-- [ ] Write failing goal-domain tests for create, preserve, replace, and remove artwork semantics.
-- [ ] Extend `CreateGoalInput` with optional artwork and `EditGoalInput` with an explicit preserve, replace, or remove contract.
-- [ ] Create `src/browser/goal-icon-upload.ts` as the browser-only boundary for source validation, image decoding, aspect-ratio fitting, canvas rendering, PNG encoding, and resource cleanup.
-- [ ] Write focused tests for accepted PNG, JPEG, and WebP sources; unsupported MIME types; sources over 2 MB; decode failures; encoding failures; stale selections; dimension fitting; and normalized results over 100 KB.
-- [ ] Preserve transparency when present, never crop or upscale the source, constrain the longest side to 128px, and persist only the normalized PNG data URL.
-- [ ] Write failing goal-dialog tests for accessible file errors, processing state, preview, create submission, replacement, removal, cancellation, and edit-state reinitialization.
-- [ ] Add an optional file input accepting PNG, JPEG, and WebP to `src/components/GoalFormDialog.tsx` and link failures through `aria-describedby` and `aria-invalid`.
-- [ ] Disable goal submission only while image processing is active and prevent an older asynchronous selection from replacing a newer one.
-- [ ] Add preview, Replace, and Remove controls using the existing dialog, button, focus, and error conventions.
-- [ ] Write failing goal-card tests for artwork presence, absence, decorative alternative text, stable dimensions, long names, and completion state.
-- [ ] Render artwork in an `alt=""`, 56px, `object-fit: contain` region beside the goal heading; show no placeholder when artwork is absent.
-- [ ] Add responsive artwork and file-control styles without shifting balance, progress, activity, or action controls.
+- [x] Write failing goal-domain tests for create, preserve, replace, and remove artwork semantics.
+- [x] Extend `CreateGoalInput` with optional artwork and `EditGoalInput` with an explicit preserve, replace, or remove contract.
+- [x] Create `src/browser/goal-icon-upload.ts` as the browser-only boundary for source validation, image decoding, aspect-ratio fitting, canvas rendering, PNG encoding, and resource cleanup.
+- [x] Write focused tests for accepted PNG, JPEG, and WebP sources; unsupported MIME types; sources over 2 MB; decode failures; encoding failures; stale selections; dimension fitting; and normalized results over 100 KB.
+- [x] Preserve transparency when present, never crop or upscale the source, constrain the longest side to 128px, and persist only the normalized PNG data URL.
+- [x] Write failing goal-dialog tests for accessible file errors, processing state, preview, create submission, replacement, removal, cancellation, and edit-state reinitialization.
+- [x] Add an optional file input accepting PNG, JPEG, and WebP to `src/components/GoalFormDialog.tsx` and link failures through `aria-describedby` and `aria-invalid`.
+- [x] Disable goal submission only while image processing is active and prevent an older asynchronous selection from replacing a newer one.
+- [x] Add preview, Replace, and Remove controls using the existing dialog, button, focus, and error conventions.
+- [x] Write failing goal-card tests for artwork presence, absence, decorative alternative text, stable dimensions, long names, and completion state.
+- [x] Render artwork in an `alt=""`, 56px, `object-fit: contain` region beside the goal heading; show no placeholder when artwork is absent.
+- [x] Add responsive artwork and file-control styles without shifting balance, progress, activity, or action controls.
 
 **Validation**
 
-- [ ] `npm test -- --run src/domain/goals.test.ts src/domain/goal-icons.test.ts src/browser/goal-icon-upload.test.ts`
-- [ ] `npm test -- --run src/components/GoalFormDialog.test.tsx src/components/GoalCard.test.tsx`
-- [ ] `npm run format:check`
-- [ ] `npm run typecheck`
-- [ ] `npm run lint`
-- [ ] `npm run build`
+- [x] `npm test -- --run src/domain/goals.test.ts src/domain/goal-icons.test.ts src/browser/goal-icon-upload.test.ts`
+- [x] `npm test -- --run src/components/GoalFormDialog.test.tsx src/components/GoalCard.test.tsx`
+- [x] `npm run format:check`
+- [x] `npm run typecheck`
+- [x] `npm run lint`
+- [x] `npm run build`
 
 **Handoff:** Record accepted formats, normalization limits, create/edit semantics, asynchronous cleanup, and responsive display behavior in the Session Log.
 
@@ -440,6 +440,13 @@ Every implementation session must:
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
+
+### 2026-08-10 - Session 12: Custom Goal Artwork
+
+- Completed: Added optional normalized artwork to goal creation and explicit preserve, replace, or remove edit semantics; introduced a browser-only PNG/JPEG/WebP upload boundary with 2 MB source validation, decode and canvas failure handling, aspect-ratio fitting, transparent PNG encoding, 128px and 100 KB limits, abort-aware stale-selection handling, and bitmap cleanup; added accessible upload errors, processing state, previews, replacement and removal controls; and rendered decorative artwork in a stable 56px goal-heading region without an absent placeholder.
+- Validation: The Session 12 domain/browser command passed 29 tests and the component command passed 14 tests; `npm test -- --run` passed 166 tests across 21 files; `npm run format:check`, `npm run typecheck`, `npm run lint`, and `npm run build` passed. Real Chromium upload produced and persisted a normalized PNG through reload; desktop inspection passed, and a 375x812 check measured a 56x56 artwork region, no heading overlap, and no horizontal overflow.
+- Decisions or deviations: Creation omits artwork unless normalization succeeds, while every edit must explicitly preserve, replace, or remove it. Starting a newer upload aborts and supersedes the older result; closing or removing aborts active work, and decoded bitmaps close in every post-decode outcome. Canvas remains transparent by default, dimensions never upscale, and over-limit normalized output is rejected instead of persisted.
+- Next unchecked task: Session 13 - add integrated Playwright coverage, complete keyboard and screenshot audits, update release documentation, and run the final release gate.
 
 ### 2026-08-10 - Session 11: Optional Withdrawal Reasons
 

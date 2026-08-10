@@ -57,6 +57,7 @@ describe("savings reducer", () => {
         name: "Rainy day fund",
         targetAmount: "120.00",
         withdrawalWarningPercent: 15,
+        artwork: { type: "preserve" },
       },
     });
 

@@ -1,4 +1,5 @@
 import { currencyCode, parseAmountToMinorUnits } from "./money";
+import { isNormalizedGoalIconDataUrl } from "./goal-icons";
 import type { Goal, GoalId, Transaction, TransactionId } from "./types";
 
 const DEFAULT_WITHDRAWAL_WARNING_PERCENT = 20;
@@ -14,12 +15,19 @@ export interface CreateGoalInput {
   readonly openingBalanceAmount: string;
   readonly currency: string;
   readonly withdrawalWarningPercent?: number;
+  readonly iconDataUrl?: string;
 }
+
+export type GoalArtworkChange =
+  | { readonly type: "preserve" }
+  | { readonly type: "replace"; readonly iconDataUrl: string }
+  | { readonly type: "remove" };
 
 export interface EditGoalInput {
   readonly name: string;
   readonly targetAmount: string;
   readonly withdrawalWarningPercent: number;
+  readonly artwork: GoalArtworkChange;
 }
 
 export interface CreatedGoal {
@@ -47,6 +55,7 @@ export function createGoal(
   );
   const goalId = providers.createId() as GoalId;
   const occurredAt = providers.now();
+  const iconDataUrl = validateOptionalIconDataUrl(input.iconDataUrl);
 
   return {
     goal: {
@@ -56,6 +65,7 @@ export function createGoal(
       currency,
       withdrawalWarningPercent,
       createdAt: occurredAt,
+      ...(iconDataUrl === undefined ? {} : { iconDataUrl }),
     },
     openingTransaction: {
       id: providers.createId() as TransactionId,
@@ -68,7 +78,8 @@ export function createGoal(
 }
 
 export function editGoal(goal: Goal, input: EditGoalInput): Goal {
-  return {
+  const artwork = input.artwork;
+  const editedGoal: Goal = {
     ...goal,
     name: validateGoalName(input.name),
     targetMinorUnits: parseAmountToMinorUnits(
@@ -79,6 +90,33 @@ export function editGoal(goal: Goal, input: EditGoalInput): Goal {
       input.withdrawalWarningPercent,
     ),
   };
+
+  switch (artwork.type) {
+    case "preserve":
+      return editedGoal;
+    case "replace":
+      return {
+        ...editedGoal,
+        iconDataUrl: validateIconDataUrl(artwork.iconDataUrl),
+      };
+    case "remove": {
+      const goalWithoutArtwork = { ...editedGoal };
+      delete goalWithoutArtwork.iconDataUrl;
+      return goalWithoutArtwork;
+    }
+  }
+}
+
+function validateOptionalIconDataUrl(value: string | undefined) {
+  return value === undefined ? undefined : validateIconDataUrl(value);
+}
+
+function validateIconDataUrl(value: string): string {
+  if (!isNormalizedGoalIconDataUrl(value)) {
+    throw new Error("Goal artwork must be a normalized PNG image.");
+  }
+
+  return value;
 }
 
 function validateGoalName(value: string): string {

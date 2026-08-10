@@ -25,15 +25,16 @@ accessible animated progress, overfunding and persisted completion states,
 per-goal localized balances and activity, and icon-based goal controls. Create,
 edit, permanent-delete, deposit, withdrawal, and large-withdrawal confirmation
 flows are implemented over a tested money and saving-goal domain, a validated
-local-storage boundary, and reducer-driven application state. Unavailable,
+local-storage boundary, and reducer-driven application state. Withdrawals can
+include an optional immutable reason, and goals can include locally normalized
+artwork that users can add, replace, or remove. Unavailable,
 quota-failed, and corrupt storage states provide explicit session-only or reset
 recovery without exposing or silently overwriting raw data. Primary workflows
 have passed desktop and mobile keyboard, focus, contrast, landmark, form,
 dialog, live-region, and reduced-motion audits. Formatting, linting,
 type-checking, unit-test, browser-test, build, and preview commands are
-executable. The persisted model now uses a strict version-two envelope that can
-hold an optional normalized goal icon and an optional withdrawal reason; the
-corresponding user interfaces remain planned work.
+executable. The persisted model and both interfaces use the strict version-two
+envelope for optional normalized goal artwork and withdrawal reasons.
 
 ## Product Scope
 
@@ -42,6 +43,8 @@ corresponding user interfaces remain planned work.
 - Create, edit, and permanently delete multiple saving goals.
 - Give each goal an immutable ISO currency and opening balance.
 - Record timestamped deposits and withdrawals in an immutable ledger.
+- Add an optional immutable reason to withdrawals.
+- Add, replace, and remove locally normalized goal artwork.
 - Derive balances, progress, and first completion from goals and transactions.
 - Warn before withdrawals above a per-goal threshold and reject overdrafts.
 - Persist a versioned state envelope in browser local storage with explicit
@@ -63,7 +66,8 @@ corresponding user interfaces remain planned work.
 - **Minor units:** Safe integer currency units, such as cents for USD. Balance
   arithmetic never uses floating-point major units.
 - **Goal:** A named target with one immutable ISO currency, a positive target,
-  and a configurable whole-number withdrawal warning percentage from 0 to 100.
+  a configurable whole-number withdrawal warning percentage from 0 to 100, and
+  optional normalized artwork.
 - **Transaction:** An immutable opening, deposit, or withdrawal ledger record.
   A goal balance is always derived from its transactions.
 - **Progress:** The balance divided by the target using integer floor division.
@@ -84,6 +88,12 @@ goal lifecycle rules, immutable ledger operations, progress and completion, and
 withdrawal decisions. IDs and clocks are injected where records are created.
 Application state hydrates once through `useSavings` and persists successful
 durable changes through a revision-gated effect.
+
+Browser-only image handling validates source MIME type and size, decodes the
+source, fits it without cropping or upscaling, renders it to a transparent
+canvas no larger than 128px on either side, and accepts only normalized PNG
+payloads no larger than 100 KB. Image processing can be canceled and never
+introduces a network request.
 
 The application has no backend or runtime network dependency. Vite produces
 static assets that can be hosted on any service capable of serving the built

@@ -235,6 +235,30 @@ main {
   min-width: 0;
 }
 
+.goal-card__identity {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.goal-card__heading {
+  min-width: 0;
+}
+
+.goal-card__artwork {
+  flex: 0 0 3.5rem;
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.goal-card__artwork img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .goal-card h3 {
   margin: 0;
   max-width: 100%;
@@ -663,6 +687,63 @@ main {
 
 .dialog-panel input[aria-invalid="true"] {
   border-color: var(--color-warning-dark);
+}
+
+.goal-artwork-field {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  margin-top: var(--space-2);
+}
+
+.goal-artwork-field > label {
+  margin-top: 0;
+}
+
+.goal-artwork-field input[type="file"] {
+  min-height: 3rem;
+  padding: var(--space-2);
+  overflow: hidden;
+}
+
+.goal-artwork-field input[type="file"]::file-selector-button {
+  min-height: 2rem;
+  margin-right: var(--space-3);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-ink);
+  border-radius: 4px;
+  color: var(--color-ink);
+  background: var(--color-surface);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.goal-artwork-field__status {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.goal-artwork-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
+}
+
+.goal-artwork-preview img {
+  width: 4rem;
+  height: 4rem;
+  object-fit: contain;
+}
+
+.goal-artwork-preview .button {
+  gap: var(--space-2);
 }
 
 .field-error {

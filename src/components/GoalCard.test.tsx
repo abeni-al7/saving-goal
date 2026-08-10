@@ -38,6 +38,36 @@ const callbacks = {
 };
 
 describe("GoalCard", () => {
+  it("renders artwork decoratively in a dedicated heading region", () => {
+    const { container } = render(
+      <GoalCard
+        goal={{ ...goal, iconDataUrl: "data:image/png;base64,AAAA" }}
+        transactions={transactions}
+        {...callbacks}
+      />,
+    );
+
+    const artworkRegion = container.querySelector(".goal-card__artwork");
+    const artwork = artworkRegion?.querySelector("img");
+    expect(artworkRegion).toBeInTheDocument();
+    expect(artwork).toHaveAttribute("alt", "");
+    expect(artwork).toHaveAttribute("src", "data:image/png;base64,AAAA");
+    expect(
+      screen.getByRole("heading", { name: "Emergency fund" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows no artwork region or placeholder when artwork is absent", () => {
+    const { container } = render(
+      <GoalCard goal={goal} transactions={transactions} {...callbacks} />,
+    );
+
+    expect(
+      container.querySelector(".goal-card__artwork"),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+  });
+
   it("formats the balance and target and presents recent activity", () => {
     render(<GoalCard goal={goal} transactions={transactions} {...callbacks} />);
 
