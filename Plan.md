@@ -437,6 +437,132 @@ Every implementation session must:
 
 ---
 
+## Session 14: Activity Disclosure And Goal Actions
+
+**Depends on:** Session 13
+
+**Outcome:** Goal cards keep their established editorial composition while exposing a clearer primary transaction action and a compact, accessible activity disclosure whose complete ledger reads newest to oldest.
+
+- [ ] Write failing `ActivityList` tests for a fully collapsed default, an entry-count label, `aria-expanded` and `aria-controls`, expansion, collapse, and an empty goal without a meaningless disclosure control.
+- [ ] Write failing `ActivityList` tests proving expansion reveals every matching transaction newest to oldest, with timestamp and transaction ID still providing deterministic tie behavior through the existing domain ordering helper.
+- [ ] Write failing reason-presentation tests for a visible `Reason` label, full untruncated text, omission when no reason exists, and a 160-character reason remaining attached to its matching withdrawal.
+- [ ] Update `src/components/ActivityList.tsx` with local disclosure state only; reverse a copied `transactionsForGoal` result at the presentation boundary without changing the domain helper, persisted state, or immutable records.
+- [ ] Add a goal-specific controlled-region ID and a text disclosure button with a Lucide chevron; use `Show N activities` while closed and `Hide activity` while open.
+- [ ] Render optional withdrawal reasons as secondary notes inside their matching rows, with a compact visible `Reason` label and the existing `data-testid="withdrawal-reason"` retained on the reason text.
+- [ ] Style the disclosure and reason note in `src/styles/global.css` using the existing ledger language: compact spacing, a muted left rule, normal body weight, robust wrapping, and no nested card, badge, speech bubble, tooltip, truncation, or internal scrolling region.
+- [ ] Use `AnimatePresence` to reveal or hide the ledger as one calm region and rotate the chevron subtly; set `initial={false}` and render immediate final states under reduced motion rather than staggering historical rows.
+- [ ] Write failing `GoalCard` tests for a visible icon-plus-text Add transaction control while preserving direct, compact edit and delete actions with their existing accessible names.
+- [ ] Update `TransactionDialog.tsx`, `GoalCard.tsx`, and `src/styles/global.css` so Add transaction is the visually dominant action, edit and delete remain directly available, narrow layouts use stable `minmax(0, 1fr) auto auto` tracks, and every target remains at least 44px.
+- [ ] Re-run affected dashboard tests and update assertions that previously assumed the activity list was always mounted or ordered oldest first.
+
+**Validation**
+
+- [ ] `npm test -- --run src/components/ActivityList.test.tsx src/components/GoalCard.test.tsx src/components/GoalsDashboard.test.tsx`
+- [ ] `npm run format:check`
+- [ ] `npm run typecheck`
+- [ ] `npm run lint`
+- [ ] Workspace diagnostics report no relevant errors.
+
+**Handoff:** Record disclosure labels and semantics, newest-first presentation behavior, reason-note treatment, action hierarchy, reduced-motion behavior, and focused test results in the Session Log.
+
+---
+
+## Session 15: Shared Responsive Dialog Motion
+
+**Depends on:** Session 14
+
+**Outcome:** Every modal uses one accessible, restrained entrance and exit language, appearing as a safe-area-aware bottom sheet on phones and the existing centered panel on larger viewports.
+
+- [ ] Write focused failing tests for a shared dialog surface that prove open and closed rendering, accessible dialog attributes, exit completion, and immediate reduced-motion state.
+- [ ] Create `src/components/DialogSurface.tsx` using the existing `motion/react` dependency and `AnimatePresence`; centralize backdrop and panel variants with a short opacity transition and approximately 8-12px of calm vertical travel.
+- [ ] Keep focus ownership explicit in callers: the shared surface handles visual presence and exit completion, while each dialog retains its current accessible name, initial-focus target, focus containment, Escape behavior, and key handler.
+- [ ] Migrate `GoalFormDialog.tsx` and `TransactionDialog.tsx` to the shared surface, preserving validation, form reset, upload cancellation, amount focus, and trigger-focus restoration.
+- [ ] Migrate `DeleteGoalDialog.tsx`, `WithdrawalWarningDialog.tsx`, and the reset confirmation in `StorageStatus.tsx`, preserving safe initial focus and destructive confirmation semantics.
+- [ ] Defer trigger-focus restoration until exit completion so focus never moves behind a still-visible surface; continue skipping stale-trigger restoration when a destructive action removes its trigger.
+- [ ] Coordinate `GoalsDashboard.tsx` warning cancellation and confirmation with controlled exit completion before returning focus to the originating transaction control, without changing pending-withdrawal reducer behavior or creating two interactive `aria-modal` surfaces.
+- [ ] Add dialog motion and placement tokens to `src/styles/global.css` without changing the current palette, typography, backdrop strength, or desktop width.
+- [ ] Below the existing 48rem breakpoint, align the backdrop to the bottom and make the panel a full-width, `100dvh`-bounded, safe-area-aware sheet with only its top corners rounded and internally reachable overflow.
+- [ ] At 48rem and above, preserve the centered panel with its existing maximum 34rem width and bounded vertical scrolling.
+- [ ] Add regression tests for focus wrapping, Escape, cancellation, submission, warning confirmation, permanent deletion, reset confirmation, and trigger-focus restoration after animated exits.
+
+**Validation**
+
+- [ ] `npm test -- --run src/components/GoalFormDialog.test.tsx src/components/TransactionDialog.test.tsx src/components/DeleteGoalDialog.test.tsx src/components/WithdrawalWarningDialog.test.tsx src/components/StorageStatus.test.tsx src/components/GoalsDashboard.test.tsx`
+- [ ] `npm run format:check`
+- [ ] `npm run typecheck`
+- [ ] `npm run lint`
+- [ ] Workspace diagnostics report no relevant errors.
+
+**Handoff:** Record the shared surface contract, responsive placement rules, exit-focus timing, warned-withdrawal layering, and focused test results in the Session Log.
+
+---
+
+## Session 16: Interaction Feedback And Local Motion
+
+**Depends on:** Session 15
+
+**Outcome:** Controls, conditional form regions, and artwork processing provide quiet, immediate feedback without layout instability or changes to the application’s fundamental visual identity.
+
+- [ ] Write focused failing tests for transaction-mode changes, withdrawal-reason visibility, transaction-preview visibility, artwork-processing status, and normalized preview completion before changing motion behavior.
+- [ ] In `TransactionDialog.tsx`, reveal and remove the withdrawal-reason field and transaction preview with short, restrained transitions while keeping validation and `aria-live="polite"` content available immediately to assistive technology.
+- [ ] In `GoalFormDialog.tsx`, pair the existing artwork-processing status with a Lucide loading indicator, retain submission disabling and abort behavior, and fade the normalized preview into a stable reserved region.
+- [ ] Add explicit hover, focus, active, and disabled treatments to controls in `src/styles/global.css`; use a restrained `scale(0.98)` pointer-press response and named transition properties rather than `transition: all`.
+- [ ] Refine segmented-control selection so deposit and withdrawal mode changes are unmistakable without relying on motion alone.
+- [ ] Keep the existing global focus outline visible and make form-control focus treatment consistent without reducing current contrast.
+- [ ] Ensure all new transforms, transitions, icon motion, conditional-region motion, and processing indicators resolve immediately under `prefers-reduced-motion`.
+- [ ] Verify stable dimensions for action groups, segmented controls, artwork previews, dialog actions, and disabled buttons so interaction states cannot move neighboring content.
+- [ ] Review CSS colors, fonts, radii, shadows, and page composition to confirm this session introduces no palette shift, typography change, nested cards, decorative effects, or broad redesign.
+
+**Validation**
+
+- [ ] `npm test -- --run src/components/TransactionDialog.test.tsx src/components/GoalFormDialog.test.tsx src/components/GoalCard.test.tsx src/components/ProgressMeter.test.tsx`
+- [ ] `npm test -- --run`
+- [ ] `npm run format:check`
+- [ ] `npm run typecheck`
+- [ ] `npm run lint`
+- [ ] `npm run build`
+- [ ] Workspace diagnostics report no relevant errors.
+
+**Handoff:** Record conditional-region behavior, tactile states, artwork feedback, reduced-motion fallbacks, stable-dimension checks, and validation results in the Session Log.
+
+---
+
+## Session 17: Design Polish Browser Gate
+
+**Depends on:** Sessions 14 through 16
+
+**Outcome:** Desktop, mobile, reduced-motion, keyboard, documentation, and full-suite evidence verify the complete interaction-polish release without regressions to product behavior or visual identity.
+
+- [ ] Extend `e2e/saving-goals.spec.ts` with enough transactions to prove each activity log is collapsed by default, reports its entry count, expands to every entry newest to oldest, and collapses again.
+- [ ] Assert optional withdrawal reasons retain their visible `Reason` labels, remain associated with the correct withdrawals, persist after reload, and wrap without colliding with right-aligned amounts.
+- [ ] Add responsive geometry assertions proving action controls do not wrap or overflow, expanded activity remains within the viewport, mobile sheets sit against the viewport bottom and safe area, and desktop dialogs remain centered and bounded.
+- [ ] Add reduced-motion assertions proving activity disclosure, dialog surfaces, conditional form regions, processing feedback, and control states render their immediate final state while preserving all information.
+- [ ] Complete keyboard-only create/cancel, activity expand/collapse, deposit, warned-withdrawal cancel/confirm, edit, delete, artwork, and storage-reset workflows; verify focus wrapping, Escape, and restoration after exits.
+- [ ] Capture representative dashboard, expanded-activity, transaction-sheet, warning-dialog, and artwork-processing screenshots for desktop Chromium, Pixel 7 mobile Chromium, and reduced-motion Chromium.
+- [ ] Inspect screenshots for action wrapping, clipped labels, long reason or amount collisions, sheet framing, backdrop layering, focus visibility, unstable dimensions, overlap, unintended palette/type changes, and unexpected layout shifts.
+- [ ] Update `docs/project-brief.md` current status with collapsed-by-default newest-first activity, labeled reason notes, responsive dialog placement, and reduced-motion-safe interaction feedback.
+- [ ] Update `README.md` only where the feature summary needs to mention collapsible activity and responsive mobile dialogs; do not expand product scope or alter local-data guarantees.
+- [ ] Review the final diff for duplicated dialog behavior, accidental domain or storage changes, stale generated screenshots, report artifacts, secrets, unrelated formatting, dependency churn, and stale documentation.
+- [ ] Check every Session 14-17 acceptance point against automated or documented manual evidence and add the completed Session Log entries newest first.
+
+**Final Validation**
+
+- [ ] `npm run format:check`
+- [ ] `npm run lint`
+- [ ] `npm run typecheck`
+- [ ] `npm run test:coverage`
+- [ ] `npm run build`
+- [ ] `npm run test:e2e`
+- [ ] `git diff --check`
+- [ ] Workspace diagnostics report no relevant errors.
+- [ ] Desktop screenshot inspection passed.
+- [ ] Mobile screenshot inspection passed.
+- [ ] Reduced-motion screenshot inspection passed.
+
+**Handoff:** Record browser versions, activity and reason evidence, dialog geometry, keyboard and focus results, screenshot findings, coverage totals, documentation changes, and any intentionally manual assertions in the Session Log.
+
+---
+
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
