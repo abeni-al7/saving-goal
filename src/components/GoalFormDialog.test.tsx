@@ -16,9 +16,20 @@ vi.mock("../browser/goal-icon-upload", () => ({
 
 const firstIconDataUrl = "data:image/png;base64,AAAA";
 const replacementIconDataUrl = "data:image/png;base64,AQID";
+const motionPreference = vi.hoisted(() => ({ reduced: false }));
+
+vi.mock("motion/react", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("motion/react")>();
+
+  return {
+    ...actual,
+    useReducedMotion: () => motionPreference.reduced,
+  };
+});
 
 describe("GoalFormDialog", () => {
   beforeEach(() => {
+    motionPreference.reduced = false;
     vi.mocked(normalizeGoalIcon).mockReset();
     vi.mocked(normalizeGoalIcon).mockResolvedValue(firstIconDataUrl);
   });
@@ -143,6 +154,8 @@ describe("GoalFormDialog", () => {
     render(<GoalFormDialog mode="create" onSubmit={onSubmit} />);
 
     await user.click(screen.getByRole("button", { name: "Add goal" }));
+    const previewStage = screen.getByTestId("goal-artwork-stage");
+    expect(previewStage).toHaveAttribute("data-state", "empty");
     const artworkInput = screen.getByLabelText("Goal artwork (optional)");
     const file = new File(["image"], "camera.webp", { type: "image/webp" });
     await user.upload(artworkInput, file);
@@ -151,6 +164,7 @@ describe("GoalFormDialog", () => {
       name: "Goal artwork preview",
     });
     expect(preview).toHaveAttribute("src", firstIconDataUrl);
+    expect(previewStage).toHaveAttribute("data-state", "ready");
     expect(artworkInput).toHaveAttribute(
       "accept",
       "image/png,image/jpeg,image/webp",
@@ -220,6 +234,9 @@ describe("GoalFormDialog", () => {
       new File(["first"], "first.png", { type: "image/png" }),
     );
     expect(screen.getByRole("status")).toHaveTextContent("Processing artwork");
+    expect(screen.getByRole("status").querySelector("svg")).toHaveClass(
+      "goal-artwork-field__spinner",
+    );
     expect(screen.getByRole("button", { name: "Create goal" })).toBeDisabled();
 
     await user.upload(
@@ -240,6 +257,25 @@ describe("GoalFormDialog", () => {
         screen.getByRole("img", { name: "Goal artwork preview" }),
       ).toHaveAttribute("src", replacementIconDataUrl);
     });
+  });
+
+  it("uses immediate artwork feedback when reduced motion is preferred", async () => {
+    motionPreference.reduced = true;
+    const user = userEvent.setup();
+    vi.mocked(normalizeGoalIcon).mockReturnValueOnce(new Promise(() => {}));
+    render(<GoalFormDialog mode="create" onSubmit={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: "Add goal" }));
+    await user.upload(
+      screen.getByLabelText("Goal artwork (optional)"),
+      new File(["image"], "goal.png", { type: "image/png" }),
+    );
+
+    expect(screen.getByTestId("goal-artwork-stage")).toHaveAttribute(
+      "data-motion",
+      "reduced",
+    );
+    expect(screen.getByRole("status")).toHaveTextContent("Processing artwork");
   });
 
   it("submits explicit artwork replacement and removal actions while editing", async () => {

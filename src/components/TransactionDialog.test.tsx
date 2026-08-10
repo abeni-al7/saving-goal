@@ -4,9 +4,20 @@ import {
   waitForElementToBeRemoved,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createGoal } from "../domain/goals";
 import { TransactionDialog } from "./TransactionDialog";
+
+const motionPreference = vi.hoisted(() => ({ reduced: false }));
+
+vi.mock("motion/react", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("motion/react")>();
+
+  return {
+    ...actual,
+    useReducedMotion: () => motionPreference.reduced,
+  };
+});
 
 function emergencyFundGoal() {
   return createGoal(
@@ -24,6 +35,83 @@ function emergencyFundGoal() {
 }
 
 describe("TransactionDialog", () => {
+  beforeEach(() => {
+    motionPreference.reduced = false;
+  });
+
+  it("marks mode changes and conditional regions for local motion", async () => {
+    const user = userEvent.setup();
+    render(
+      <TransactionDialog
+        currentBalanceMinorUnits={50_000}
+        goal={emergencyFundGoal()}
+        onSubmit={vi.fn()}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Add transaction for Emergency fund",
+      }),
+    );
+    const deposit = screen.getByRole("button", { name: "Deposit" });
+    const withdrawal = screen.getByRole("button", { name: "Withdrawal" });
+    expect(deposit).toHaveAttribute("aria-pressed", "true");
+    expect(withdrawal).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(withdrawal);
+    expect(deposit).toHaveAttribute("aria-pressed", "false");
+    expect(withdrawal).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen
+        .getByRole("textbox", { name: "Reason (optional)" })
+        .closest('[data-motion-region="withdrawal-reason"]'),
+    ).toBeInTheDocument();
+
+    await user.type(screen.getByRole("textbox", { name: "Amount" }), "25");
+    expect(
+      screen
+        .getByText("Projected balance")
+        .closest('[data-motion-region="transaction-preview"]'),
+    ).toHaveAttribute("aria-live", "polite");
+
+    await user.click(deposit);
+    expect(
+      screen.queryByRole("textbox", { name: "Reason (optional)" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("uses immediate conditional states when reduced motion is preferred", async () => {
+    motionPreference.reduced = true;
+    const user = userEvent.setup();
+    render(
+      <TransactionDialog
+        currentBalanceMinorUnits={50_000}
+        goal={emergencyFundGoal()}
+        onSubmit={vi.fn()}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Add transaction for Emergency fund",
+      }),
+    );
+    await user.click(screen.getByRole("button", { name: "Withdrawal" }));
+    await user.type(screen.getByRole("textbox", { name: "Amount" }), "25");
+
+    expect(
+      screen
+        .getByRole("textbox", { name: "Reason (optional)" })
+        .closest('[data-motion-region="withdrawal-reason"]'),
+    ).toHaveAttribute("data-motion", "reduced");
+    expect(
+      screen
+        .getByText("Projected balance")
+        .closest('[data-motion-region="transaction-preview"]'),
+    ).toHaveAttribute("data-motion", "reduced");
+  });
+
   it("previews and submits a withdrawal in currency minor units", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();

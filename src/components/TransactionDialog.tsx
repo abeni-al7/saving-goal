@@ -1,4 +1,10 @@
 import { CirclePlus } from "lucide-react";
+import {
+  AnimatePresence,
+  motion,
+  useIsPresent,
+  useReducedMotion,
+} from "motion/react";
 import { useEffect, useId, useRef, useState } from "react";
 import { formatMinorUnits, parseAmountToMinorUnits } from "../domain/money";
 import { calculateProgress } from "../domain/progress";
@@ -11,6 +17,13 @@ import { DialogSurface } from "./DialogSurface";
 import { containDialogFocus } from "./dialog-focus";
 
 export type TransactionMode = "deposit" | "withdrawal";
+
+interface ConditionalRegionProps {
+  readonly ariaLive?: "polite";
+  readonly children: React.ReactNode;
+  readonly className: string;
+  readonly region: "transaction-preview" | "withdrawal-reason";
+}
 
 interface TransactionDialogProps {
   readonly goal: Goal;
@@ -136,7 +149,11 @@ export function TransactionDialog({
       >
         <h2 id={titleId}>Add transaction</h2>
         <form noValidate onSubmit={handleSubmit}>
-          <div aria-label="Transaction type" className="segmented-control">
+          <div
+            aria-label="Transaction type"
+            className="segmented-control"
+            data-mode={mode}
+          >
             <button
               aria-pressed={mode === "deposit"}
               className="button"
@@ -146,6 +163,10 @@ export function TransactionDialog({
                 setError(undefined);
               }}
             >
+              <span
+                aria-hidden="true"
+                className="segmented-control__indicator"
+              />
               Deposit
             </button>
             <button
@@ -157,6 +178,10 @@ export function TransactionDialog({
                 setError(undefined);
               }}
             >
+              <span
+                aria-hidden="true"
+                className="segmented-control__indicator"
+              />
               Withdrawal
             </button>
           </div>
@@ -184,35 +209,51 @@ export function TransactionDialog({
             </p>
           )}
 
-          {mode === "withdrawal" ? (
-            <>
-              <label htmlFor={reasonId}>Reason (optional)</label>
-              <textarea
-                id={reasonId}
-                maxLength={MAX_WITHDRAWAL_REASON_LENGTH}
-                name="reason"
-                rows={3}
-                value={reason}
-                onChange={(event) => setReason(event.currentTarget.value)}
-              />
-            </>
-          ) : null}
+          <AnimatePresence initial={false}>
+            {mode === "withdrawal" ? (
+              <ConditionalRegion
+                className="transaction-reason"
+                region="withdrawal-reason"
+              >
+                <label htmlFor={reasonId}>Reason (optional)</label>
+                <textarea
+                  id={reasonId}
+                  maxLength={MAX_WITHDRAWAL_REASON_LENGTH}
+                  name="reason"
+                  rows={3}
+                  value={reason}
+                  onChange={(event) => setReason(event.currentTarget.value)}
+                />
+              </ConditionalRegion>
+            ) : null}
+          </AnimatePresence>
 
-          {projectedBalanceMinorUnits === undefined ||
-          projectedProgress === undefined ? null : (
-            <dl className="transaction-preview" aria-live="polite">
-              <div>
-                <dt>Projected balance</dt>
-                <dd>
-                  {formatMinorUnits(projectedBalanceMinorUnits, goal.currency)}
-                </dd>
-              </div>
-              <div>
-                <dt>Projected progress</dt>
-                <dd>{projectedProgress.percentage}%</dd>
-              </div>
-            </dl>
-          )}
+          <AnimatePresence initial={false}>
+            {projectedBalanceMinorUnits === undefined ||
+            projectedProgress === undefined ? null : (
+              <ConditionalRegion
+                ariaLive="polite"
+                className="transaction-preview"
+                region="transaction-preview"
+              >
+                <dl>
+                  <div>
+                    <dt>Projected balance</dt>
+                    <dd>
+                      {formatMinorUnits(
+                        projectedBalanceMinorUnits,
+                        goal.currency,
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Projected progress</dt>
+                    <dd>{projectedProgress.percentage}%</dd>
+                  </div>
+                </dl>
+              </ConditionalRegion>
+            )}
+          </AnimatePresence>
 
           <div className="dialog-actions">
             <button
@@ -229,6 +270,32 @@ export function TransactionDialog({
         </form>
       </DialogSurface>
     </>
+  );
+}
+
+function ConditionalRegion({
+  ariaLive,
+  children,
+  className,
+  region,
+}: ConditionalRegionProps) {
+  const isPresent = useIsPresent();
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      animate={{ opacity: 1, y: 0 }}
+      aria-hidden={isPresent ? undefined : true}
+      aria-live={ariaLive}
+      className={className}
+      data-motion={shouldReduceMotion ? "reduced" : "animated"}
+      data-motion-region={region}
+      exit={{ opacity: 0, y: -6 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: -6 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.16 }}
+    >
+      {children}
+    </motion.div>
   );
 }
 

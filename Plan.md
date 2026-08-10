@@ -503,25 +503,25 @@ Every implementation session must:
 
 **Outcome:** Controls, conditional form regions, and artwork processing provide quiet, immediate feedback without layout instability or changes to the application’s fundamental visual identity.
 
-- [ ] Write focused failing tests for transaction-mode changes, withdrawal-reason visibility, transaction-preview visibility, artwork-processing status, and normalized preview completion before changing motion behavior.
-- [ ] In `TransactionDialog.tsx`, reveal and remove the withdrawal-reason field and transaction preview with short, restrained transitions while keeping validation and `aria-live="polite"` content available immediately to assistive technology.
-- [ ] In `GoalFormDialog.tsx`, pair the existing artwork-processing status with a Lucide loading indicator, retain submission disabling and abort behavior, and fade the normalized preview into a stable reserved region.
-- [ ] Add explicit hover, focus, active, and disabled treatments to controls in `src/styles/global.css`; use a restrained `scale(0.98)` pointer-press response and named transition properties rather than `transition: all`.
-- [ ] Refine segmented-control selection so deposit and withdrawal mode changes are unmistakable without relying on motion alone.
-- [ ] Keep the existing global focus outline visible and make form-control focus treatment consistent without reducing current contrast.
-- [ ] Ensure all new transforms, transitions, icon motion, conditional-region motion, and processing indicators resolve immediately under `prefers-reduced-motion`.
-- [ ] Verify stable dimensions for action groups, segmented controls, artwork previews, dialog actions, and disabled buttons so interaction states cannot move neighboring content.
-- [ ] Review CSS colors, fonts, radii, shadows, and page composition to confirm this session introduces no palette shift, typography change, nested cards, decorative effects, or broad redesign.
+- [x] Write focused failing tests for transaction-mode changes, withdrawal-reason visibility, transaction-preview visibility, artwork-processing status, and normalized preview completion before changing motion behavior.
+- [x] In `TransactionDialog.tsx`, reveal and remove the withdrawal-reason field and transaction preview with short, restrained transitions while keeping validation and `aria-live="polite"` content available immediately to assistive technology.
+- [x] In `GoalFormDialog.tsx`, pair the existing artwork-processing status with a Lucide loading indicator, retain submission disabling and abort behavior, and fade the normalized preview into a stable reserved region.
+- [x] Add explicit hover, focus, active, and disabled treatments to controls in `src/styles/global.css`; use a restrained `scale(0.98)` pointer-press response and named transition properties rather than `transition: all`.
+- [x] Refine segmented-control selection so deposit and withdrawal mode changes are unmistakable without relying on motion alone.
+- [x] Keep the existing global focus outline visible and make form-control focus treatment consistent without reducing current contrast.
+- [x] Ensure all new transforms, transitions, icon motion, conditional-region motion, and processing indicators resolve immediately under `prefers-reduced-motion`.
+- [x] Verify stable dimensions for action groups, segmented controls, artwork previews, dialog actions, and disabled buttons so interaction states cannot move neighboring content.
+- [x] Review CSS colors, fonts, radii, shadows, and page composition to confirm this session introduces no palette shift, typography change, nested cards, decorative effects, or broad redesign.
 
 **Validation**
 
-- [ ] `npm test -- --run src/components/TransactionDialog.test.tsx src/components/GoalFormDialog.test.tsx src/components/GoalCard.test.tsx src/components/ProgressMeter.test.tsx`
-- [ ] `npm test -- --run`
-- [ ] `npm run format:check`
-- [ ] `npm run typecheck`
-- [ ] `npm run lint`
-- [ ] `npm run build`
-- [ ] Workspace diagnostics report no relevant errors.
+- [x] `npm test -- --run src/components/TransactionDialog.test.tsx src/components/GoalFormDialog.test.tsx src/components/GoalCard.test.tsx src/components/ProgressMeter.test.tsx`
+- [x] `npm test -- --run`
+- [x] `npm run format:check`
+- [x] `npm run typecheck`
+- [x] `npm run lint`
+- [x] `npm run build`
+- [x] Workspace diagnostics report no relevant errors.
 
 **Handoff:** Record conditional-region behavior, tactile states, artwork feedback, reduced-motion fallbacks, stable-dimension checks, and validation results in the Session Log.
 
@@ -566,6 +566,13 @@ Every implementation session must:
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
+
+### 2026-08-10 - Session 16: Interaction Feedback And Local Motion
+
+- Completed: Added short reduced-motion-aware presence transitions for withdrawal reason and projected transaction regions, with exiting content hidden immediately from assistive technology and the projected values retained as a polite live region. Added a stable artwork feedback stage with a Lucide processing indicator, submission and abort behavior preserved, and normalized previews fading into the reserved region. Added fixed segmented-control indicators with distinct existing deposit and withdrawal colors plus explicit hover, focus, active, and disabled states using named transitions and transform-only `scale(0.98)` press feedback.
+- Validation: Red tests first failed on absent conditional-region markers, artwork stage, loading icon, and reduced-motion marker. The exact focused command passed 29 tests across `TransactionDialog`, `GoalFormDialog`, `GoalCard`, and `ProgressMeter`; the full suite passed 177 tests across 22 files; `npm run format:check`, `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check` passed; workspace diagnostics were clean.
+- Decisions or deviations: Conditional regions use 160ms opacity and 6px vertical travel, with zero-duration final states under reduced motion. The artwork stage keeps a 5.75rem minimum height, action buttons keep stable minimum widths, mode indicators reserve their dimensions in both states, and disabled controls change opacity without changing size. The existing palette, expressive fonts, radii, shadows, focus outline, ledger composition, and flat section structure remain unchanged. Updated the app-level corrupt-storage reset test to await the session 15 exit-completion contract instead of asserting synchronously.
+- Next unchecked task: Session 17 - complete the design-polish browser gate, responsive and reduced-motion evidence, documentation updates, and release validation.
 
 ### 2026-08-10 - Session 15: Shared Responsive Dialog Motion
 

@@ -1,4 +1,5 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { LoaderCircle, Pencil, Trash2 } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useId, useRef, useState } from "react";
 import { normalizeGoalIcon } from "../browser/goal-icon-upload";
 import type { CreateGoalInput, EditGoalInput } from "../domain/goals";
@@ -49,6 +50,7 @@ export function GoalFormDialog(props: GoalFormDialogProps) {
   const panelRef = useRef<HTMLElement>(null);
   const uploadControllerRef = useRef<AbortController>(null);
   const uploadSequenceRef = useRef(0);
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (isOpen) {
@@ -369,29 +371,58 @@ export function GoalFormDialog(props: GoalFormDialogProps) {
                 {iconError}
               </p>
             )}
-            {isProcessingArtwork ? (
-              <p className="goal-artwork-field__status" role="status">
-                Processing artwork...
-              </p>
-            ) : null}
-            {iconDataUrl === undefined ? null : (
-              <div className="goal-artwork-preview">
-                <img alt="Goal artwork preview" src={iconDataUrl} />
-                <button
-                  className="button button--quiet"
-                  type="button"
-                  onClick={() => {
-                    cancelPendingUpload();
-                    setIsProcessingArtwork(false);
-                    setIconError(undefined);
-                    setIconDataUrl(undefined);
-                  }}
+            <div
+              className="goal-artwork-stage"
+              data-motion={shouldReduceMotion ? "reduced" : "animated"}
+              data-state={
+                isProcessingArtwork
+                  ? "processing"
+                  : iconDataUrl === undefined
+                    ? "empty"
+                    : "ready"
+              }
+              data-testid="goal-artwork-stage"
+            >
+              {isProcessingArtwork ? (
+                <motion.p
+                  animate={{ opacity: 1 }}
+                  className="goal-artwork-field__status"
+                  initial={shouldReduceMotion ? false : { opacity: 0 }}
+                  role="status"
+                  transition={{ duration: shouldReduceMotion ? 0 : 0.16 }}
                 >
-                  <Trash2 aria-hidden="true" size={17} strokeWidth={1.8} />
-                  Remove artwork
-                </button>
-              </div>
-            )}
+                  <LoaderCircle
+                    aria-hidden="true"
+                    className="goal-artwork-field__spinner"
+                    size={18}
+                    strokeWidth={1.8}
+                  />
+                  Processing artwork...
+                </motion.p>
+              ) : iconDataUrl === undefined ? null : (
+                <motion.div
+                  animate={{ opacity: 1 }}
+                  className="goal-artwork-preview"
+                  initial={shouldReduceMotion ? false : { opacity: 0 }}
+                  transition={{ duration: shouldReduceMotion ? 0 : 0.16 }}
+                >
+                  <img alt="Goal artwork preview" src={iconDataUrl} />
+                  <button
+                    className="button button--quiet"
+                    type="button"
+                    onClick={() => {
+                      cancelPendingUpload();
+                      setIsProcessingArtwork(false);
+                      setIconError(undefined);
+                      setIconDataUrl(undefined);
+                    }}
+                  >
+                    <Trash2 aria-hidden="true" size={17} strokeWidth={1.8} />
+                    Remove artwork
+                  </button>
+                </motion.div>
+              )}
+            </div>
           </div>
 
           <div className="dialog-actions">

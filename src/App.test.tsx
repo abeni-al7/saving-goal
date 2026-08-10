@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import App from "./App";
@@ -48,12 +48,14 @@ describe("App", () => {
     await user.click(screen.getByRole("button", { name: "Reset saved data" }));
     await user.click(screen.getByRole("button", { name: "Reset permanently" }));
 
-    expect(window.localStorage.getItem(SAVINGS_STORAGE_KEY)).not.toBe(
-      corruptValue,
-    );
-    expect(
-      screen.getByRole("main", { name: "Saving goals workspace" }),
-    ).toHaveFocus();
+    await waitFor(() => {
+      expect(window.localStorage.getItem(SAVINGS_STORAGE_KEY)).not.toBe(
+        corruptValue,
+      );
+      expect(
+        screen.getByRole("main", { name: "Saving goals workspace" }),
+      ).toHaveFocus();
+    });
     expect(
       screen.getByRole("heading", { name: "Start your first goal" }),
     ).toBeInTheDocument();
