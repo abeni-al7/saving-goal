@@ -1,5 +1,5 @@
 import { CircleCheck } from "lucide-react";
-import { useId } from "react";
+import { useId, useState } from "react";
 import type { EditGoalInput } from "../domain/goals";
 import { formatMinorUnits } from "../domain/money";
 import { deriveBalance } from "../domain/transactions";
@@ -49,11 +49,19 @@ export function GoalCard({
       data-goal-state={goal.completedAt === undefined ? "active" : "complete"}
     >
       <header className="goal-card__header">
-        <div className="goal-card__identity">
+        <div
+          className={
+            goal.iconDataUrl === undefined
+              ? "goal-card__identity"
+              : "goal-card__identity goal-card__identity--with-artwork"
+          }
+        >
           {goal.iconDataUrl === undefined ? null : (
-            <span aria-hidden="true" className="goal-card__artwork">
-              <img alt="" src={goal.iconDataUrl} />
-            </span>
+            <GoalArtwork
+              key={goal.iconDataUrl}
+              goalName={goal.name}
+              src={goal.iconDataUrl}
+            />
           )}
           <div className="goal-card__heading">
             <h3 id={titleId}>{goal.name}</h3>
@@ -108,5 +116,33 @@ export function GoalCard({
         <ActivityList goal={goal} transactions={transactions} />
       </section>
     </article>
+  );
+}
+
+interface GoalArtworkProps {
+  readonly goalName: string;
+  readonly src: string;
+}
+
+function GoalArtwork({ goalName, src }: GoalArtworkProps) {
+  const [aspectRatio, setAspectRatio] = useState("1 / 1");
+
+  return (
+    <span
+      className="goal-card__artwork"
+      data-prominence="focal"
+      style={{ aspectRatio }}
+    >
+      <img
+        alt={`${goalName} goal artwork`}
+        src={src}
+        onLoad={(event) => {
+          const { naturalHeight, naturalWidth } = event.currentTarget;
+          if (naturalWidth > 0 && naturalHeight > 0) {
+            setAspectRatio(`${naturalWidth} / ${naturalHeight}`);
+          }
+        }}
+      />
+    </span>
   );
 }

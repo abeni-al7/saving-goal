@@ -182,9 +182,11 @@ test("creates, persists, replaces, and removes normalized goal artwork", async (
     128,
     64,
   );
+  await expectArtworkAspectRatio(page, "Camera fund", 2);
   await expect.poll(() => storedEnvelopeVersion(page)).toBe(2);
   await page.reload();
   await expectNormalizedArtwork(page, "Camera fund", 128, 64);
+  await expectArtworkAspectRatio(page, "Camera fund", 2);
 
   const replacementArtwork = await generatedArtwork(page, {
     name: "tall-goal.jpg",
@@ -209,8 +211,10 @@ test("creates, persists, replaces, and removes normalized goal artwork", async (
     120,
   );
   expect(replacementSource).not.toBe(originalSource);
+  await expectArtworkAspectRatio(page, "Camera fund", 0.5);
   await page.reload();
   await expectNormalizedArtwork(page, "Camera fund", 60, 120);
+  await expectArtworkAspectRatio(page, "Camera fund", 0.5);
 
   await page.getByRole("button", { name: "Edit Camera fund" }).click();
   await editDialog.getByRole("button", { name: "Remove artwork" }).click();
@@ -696,8 +700,15 @@ test("fits progress visuals and dialog framing at the configured viewport", asyn
   const artworkBox = await longGoal
     .locator(".goal-card__artwork")
     .boundingBox();
-  expect(artworkBox?.width).toBe(56);
-  expect(artworkBox?.height).toBe(56);
+  const artworkImageBox = await longGoal
+    .getByRole("img", { name: `${longGoalName} goal artwork` })
+    .boundingBox();
+  expect(artworkBox).not.toBeNull();
+  expect(artworkImageBox).not.toBeNull();
+  expect(artworkBox!.width).toBeGreaterThanOrEqual(160);
+  expect(artworkBox!.width / artworkBox!.height).toBeCloseTo(2, 2);
+  expect(artworkImageBox!.width).toBe(128);
+  expect(artworkImageBox!.height).toBe(64);
 
   await page.screenshot({
     path: `test-results/session-17-${testInfo.project.name}-dashboard.png`,
@@ -940,6 +951,21 @@ async function expectNormalizedArtwork(
     )
     .toEqual({ width, height });
   return (await artwork.getAttribute("src"))!;
+}
+
+async function expectArtworkAspectRatio(
+  page: Page,
+  goalName: string,
+  expectedRatio: number,
+): Promise<void> {
+  await expect
+    .poll(async () => {
+      const box = await goalCard(page, goalName)
+        .locator(".goal-card__artwork")
+        .boundingBox();
+      return box === null ? 0 : box.width / box.height;
+    })
+    .toBeCloseTo(expectedRatio, 2);
 }
 
 async function chooseFileWithKeyboard(

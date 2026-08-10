@@ -45,10 +45,11 @@ invalid save or quota failure must not overwrite the prior raw stored value.
 ## Consequences
 
 Artwork remains on the device and requires no runtime network dependency. The
-stored representation is deterministic, small enough for a 56px display, and
-strictly validated. PNG preserves transparency but can encode photographic
-sources less efficiently than JPEG or WebP, so some detailed images may be
-rejected after normalization even when the source is below 2 MB.
+stored representation is deterministic, large enough to render at its full
+128px normalized size inside the prominent goal-artwork stage, and strictly
+validated. PNG preserves transparency but can encode photographic sources less
+efficiently than JPEG or WebP, so some detailed images may be rejected after
+normalization even when the source is below 2 MB.
 
 Base64 data URLs add storage overhead, and localStorage quotas vary by browser,
 profile, and device. Saving many illustrated goals can therefore exhaust quota.

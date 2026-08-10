@@ -11,7 +11,7 @@ an immutable activity history, and see progress without creating an account.
 - Immutable opening, deposit, and withdrawal transactions
 - Collapsible, count-labeled activity ledgers presented newest first
 - Optional trimmed withdrawal reasons visibly labeled in immutable history
-- Optional goal artwork with local preview, replacement, and removal
+- Prominent goal artwork with local preview, replacement, and removal
 - Projected transaction effects, overdraft protection, and confirmation for
   unusually large withdrawals
 - Accessible progress, first-completion feedback, live announcements, keyboard
@@ -76,6 +76,8 @@ withdrawal records. Goal artwork accepts PNG, JPEG, and WebP source files up to
 2 MB. The browser processes artwork locally without uploading it, preserves its
 aspect ratio, does not crop or upscale it, and stores only a normalized PNG with
 a longest side of 128px and a Base64 payload no larger than 100 KB.
+Saved artwork appears in a prominent responsive stage that follows the image's
+intrinsic aspect ratio and is named for its goal for assistive technology.
 
 Artwork uses substantially more local-storage quota than text. If the browser
 rejects a save because its quota is full, the app keeps the current in-memory

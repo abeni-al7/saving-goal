@@ -58,7 +58,7 @@ Every implementation session must:
 - [x] Deposits and opening balances cannot receive withdrawal-reason metadata.
 - [x] A user can add goal artwork while creating a goal and replace or remove it while editing without canceled changes leaking into saved state.
 - [x] Goal artwork accepts decoded PNG, JPEG, and WebP sources no larger than 2 MB, preserves aspect ratio without cropping, and is normalized locally to a PNG no larger than 128px or 100 KB.
-- [x] Each goal displays its artwork in a stable 56px region beside the goal name without clipping, overlap, or layout shifts on supported mobile and desktop viewports.
+- [x] Each goal displays its artwork as a prominent, accessible visual reminder in a responsive stage that follows the normalized image's intrinsic aspect ratio without clipping or overlap on supported mobile and desktop viewports.
 - [x] Valid version-one data migrates without user intervention, new changes persist as version two, and malformed or unsupported data remains preserved for recovery.
 
 ---
@@ -385,7 +385,7 @@ Every implementation session must:
 - [x] Disable goal submission only while image processing is active and prevent an older asynchronous selection from replacing a newer one.
 - [x] Add preview, Replace, and Remove controls using the existing dialog, button, focus, and error conventions.
 - [x] Write failing goal-card tests for artwork presence, absence, decorative alternative text, stable dimensions, long names, and completion state.
-- [x] Render artwork in an `alt=""`, 56px, `object-fit: contain` region beside the goal heading; show no placeholder when artwork is absent.
+- [x] Render artwork with goal-specific alternative text at its full normalized size inside a full-width mobile or 160px-wide desktop focal stage whose aspect ratio follows the image using `object-fit: contain`; show no placeholder when artwork is absent.
 - [x] Add responsive artwork and file-control styles without shifting balance, progress, activity, or action controls.
 
 **Validation**

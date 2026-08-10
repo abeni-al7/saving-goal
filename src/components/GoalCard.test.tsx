@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { currencyCode } from "../domain/money";
 import type { Goal, GoalId, Transaction, TransactionId } from "../domain/types";
@@ -38,7 +38,7 @@ const callbacks = {
 };
 
 describe("GoalCard", () => {
-  it("renders artwork decoratively in a dedicated heading region", () => {
+  it("renders artwork as a prominent representation of the goal", () => {
     const { container } = render(
       <GoalCard
         goal={{ ...goal, iconDataUrl: "data:image/png;base64,AAAA" }}
@@ -48,10 +48,18 @@ describe("GoalCard", () => {
     );
 
     const artworkRegion = container.querySelector(".goal-card__artwork");
-    const artwork = artworkRegion?.querySelector("img");
     expect(artworkRegion).toBeInTheDocument();
-    expect(artwork).toHaveAttribute("alt", "");
+    expect(artworkRegion).toHaveAttribute("data-prominence", "focal");
+    const artwork = screen.getByRole("img", {
+      name: "Emergency fund goal artwork",
+    });
     expect(artwork).toHaveAttribute("src", "data:image/png;base64,AAAA");
+    Object.defineProperties(artwork, {
+      naturalWidth: { value: 128 },
+      naturalHeight: { value: 64 },
+    });
+    fireEvent.load(artwork);
+    expect(artworkRegion).toHaveStyle({ aspectRatio: "128 / 64" });
     expect(
       screen.getByRole("heading", { name: "Emergency fund" }),
     ).toBeInTheDocument();

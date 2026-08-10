@@ -30,7 +30,10 @@ and large-withdrawal confirmation flows are implemented over a tested money and
 saving-goal domain, a validated local-storage boundary, and reducer-driven
 application state. Withdrawals can include an optional immutable reason, and
 goals can include locally normalized artwork that users can add, replace, or
-remove. Dialogs use bounded centered panels on larger viewports and
+remove. Goal artwork is presented as a prominent, named visual reminder in a
+full-width mobile stage or a 160px-wide desktop stage whose aspect ratio follows
+the normalized image without cropping. Dialogs use bounded centered panels on
+larger viewports and
 safe-area-aware bottom sheets on phones. Control feedback, conditional form
 regions, artwork processing, activity disclosure, and dialog transitions settle
 immediately while preserving their information under reduced motion.
@@ -54,6 +57,9 @@ performance telemetry; both integrations are inactive during local development.
 - Record timestamped deposits and withdrawals in an immutable ledger.
 - Add an optional immutable reason to withdrawals.
 - Add, replace, and remove locally normalized goal artwork.
+- Present saved artwork prominently as an accessible visual reminder of its
+  goal in a stage that follows the image's intrinsic aspect ratio without
+  cropping.
 - Derive balances, progress, and first completion from goals and transactions.
 - Warn before withdrawals above a per-goal threshold and reject overdrafts.
 - Persist a versioned state envelope in browser local storage with explicit
