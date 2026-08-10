@@ -3,6 +3,7 @@ import {
   migrateSavingsEnvelope,
   SAVINGS_SCHEMA_VERSION,
   SAVINGS_STORAGE_KEY,
+  savingsEnvelopeV2Schema,
 } from "./schema";
 
 export type SavingsStorage = Pick<
@@ -25,7 +26,7 @@ export type SaveSavingsResult =
   | { readonly success: true }
   | {
       readonly success: false;
-      readonly reason: "quota-exceeded" | "unavailable";
+      readonly reason: "invalid-data" | "quota-exceeded" | "unavailable";
       readonly message: string;
     };
 
@@ -80,10 +81,20 @@ export function saveSavings(
   storage: SavingsStorage,
   state: SavingsState,
 ): SaveSavingsResult {
-  const serialized = JSON.stringify({
+  const envelope = {
     version: SAVINGS_SCHEMA_VERSION,
     state,
-  });
+  };
+  const parsed = savingsEnvelopeV2Schema.safeParse(envelope);
+  if (!parsed.success) {
+    return {
+      success: false,
+      reason: "invalid-data",
+      message: "Changes contain invalid saving data and could not be saved.",
+    };
+  }
+
+  const serialized = JSON.stringify(parsed.data);
 
   try {
     storage.setItem(SAVINGS_STORAGE_KEY, serialized);

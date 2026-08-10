@@ -42,16 +42,43 @@ describe("savings storage", () => {
     });
   });
 
-  it("loads valid version-one data", () => {
-    localStorage.setItem(
-      SAVINGS_STORAGE_KEY,
-      JSON.stringify({ version: 1, state: validState }),
-    );
+  it("loads valid version-one data through migration", () => {
+    const rawValue = JSON.stringify({ version: 1, state: validState });
+    localStorage.setItem(SAVINGS_STORAGE_KEY, rawValue);
 
     expect(loadSavings(localStorage)).toEqual({
       status: "loaded",
       state: validState,
     });
+    expect(localStorage.getItem(SAVINGS_STORAGE_KEY)).toBe(rawValue);
+  });
+
+  it("loads valid version-two metadata", () => {
+    const state: SavingsState = {
+      goals: [
+        {
+          ...validState.goals[0],
+          iconDataUrl: "data:image/png;base64,AAAA",
+        },
+      ],
+      transactions: [
+        ...validState.transactions,
+        {
+          id: "transaction-2" as SavingsState["transactions"][number]["id"],
+          goalId: validState.goals[0].id,
+          kind: "withdrawal",
+          amountMinorUnits: 1_000,
+          occurredAt: "2026-08-10T12:00:00.000Z",
+          reason: "Emergency repair",
+        },
+      ],
+    };
+    localStorage.setItem(
+      SAVINGS_STORAGE_KEY,
+      JSON.stringify({ version: 2, state }),
+    );
+
+    expect(loadSavings(localStorage)).toEqual({ status: "loaded", state });
   });
 
   it.each([
@@ -59,6 +86,17 @@ describe("savings storage", () => {
     [
       "schema-invalid JSON",
       JSON.stringify({ version: 1, state: { goals: "nope" } }),
+      "invalid-data",
+    ],
+    [
+      "schema-invalid version-two JSON",
+      JSON.stringify({
+        version: 2,
+        state: {
+          goals: [],
+          transactions: [{ ...validState.transactions[0], reason: "Invalid" }],
+        },
+      }),
       "invalid-data",
     ],
     [
@@ -92,11 +130,34 @@ describe("savings storage", () => {
     });
   });
 
-  it("saves a version-one envelope", () => {
+  it("saves a version-two envelope", () => {
     expect(saveSavings(localStorage, validState)).toEqual({ success: true });
     expect(JSON.parse(localStorage.getItem(SAVINGS_STORAGE_KEY) ?? "")).toEqual(
-      { version: 1, state: validState },
+      { version: 2, state: validState },
     );
+  });
+
+  it("saves the normalized version-two envelope", () => {
+    const state: SavingsState = {
+      ...validState,
+      transactions: [
+        ...validState.transactions,
+        {
+          id: "transaction-2" as SavingsState["transactions"][number]["id"],
+          goalId: validState.goals[0].id,
+          kind: "withdrawal",
+          amountMinorUnits: 1_000,
+          occurredAt: "2026-08-10T12:00:00.000Z",
+          reason: "  Emergency repair  ",
+        },
+      ],
+    };
+
+    expect(saveSavings(localStorage, state)).toEqual({ success: true });
+    expect(
+      JSON.parse(localStorage.getItem(SAVINGS_STORAGE_KEY) ?? "").state
+        .transactions[1].reason,
+    ).toBe("Emergency repair");
   });
 
   it("reports quota failures without changing the existing raw value", () => {
@@ -115,6 +176,27 @@ describe("savings storage", () => {
       message: "Changes could not be saved because storage is full.",
     });
     expect(quotaStorage.getItem(SAVINGS_STORAGE_KEY)).toBe(rawValue);
+  });
+
+  it("rejects invalid version-two state without changing the existing raw value", () => {
+    const rawValue = JSON.stringify({ version: 1, state: validState });
+    localStorage.setItem(SAVINGS_STORAGE_KEY, rawValue);
+    const invalidState: SavingsState = {
+      ...validState,
+      transactions: [
+        {
+          ...validState.transactions[0],
+          reason: "Opening balances cannot have reasons",
+        },
+      ],
+    };
+
+    expect(saveSavings(localStorage, invalidState)).toEqual({
+      success: false,
+      reason: "invalid-data",
+      message: "Changes contain invalid saving data and could not be saved.",
+    });
+    expect(localStorage.getItem(SAVINGS_STORAGE_KEY)).toBe(rawValue);
   });
 
   it("removes saved data only when reset is explicit", () => {

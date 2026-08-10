@@ -31,7 +31,9 @@ recovery without exposing or silently overwriting raw data. Primary workflows
 have passed desktop and mobile keyboard, focus, contrast, landmark, form,
 dialog, live-region, and reduced-motion audits. Formatting, linting,
 type-checking, unit-test, browser-test, build, and preview commands are
-executable.
+executable. The persisted model now uses a strict version-two envelope that can
+hold an optional normalized goal icon and an optional withdrawal reason; the
+corresponding user interfaces remain planned work.
 
 ## Product Scope
 
@@ -91,8 +93,15 @@ files. Architecture rationale is recorded in
 ## Persistence And Recovery
 
 - The local-storage key is `saving-goal:state`.
-- Version one stores `{ version: 1, state: { goals, transactions } }` and is
+- Version two stores `{ version: 2, state: { goals, transactions } }` and is
   validated with a strict Zod schema before entering application state.
+- Goals may contain an optional normalized PNG data URL whose encoded Base64
+  payload is at most 100 KB. Withdrawals may contain an optional trimmed reason
+  from 1 through 160 characters; opening balances and deposits cannot contain a
+  reason.
+- A valid version-one envelope is validated against its original strict schema
+  and migrated in memory by changing only the version. The next successful
+  state change persists version two.
 - Missing data starts with an empty state. Valid data hydrates normally.
 - Malformed JSON, schema-invalid data, and unknown versions are preserved
   byte-for-byte and require an explicit reset or session-only decision.
@@ -102,8 +111,8 @@ files. Architecture rationale is recorded in
 
 ## Privacy And Data Ownership
 
-- Goal names, amounts, currencies, thresholds, and transaction history remain in
-  the current browser profile's local storage.
+- Goal names, amounts, currencies, thresholds, normalized goal artwork, and
+  transaction history remain in the current browser profile's local storage.
 - The application does not transmit, synchronize, analyze, or back up saving
   data.
 - Anyone with access to the browser profile may be able to inspect the locally

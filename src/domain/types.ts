@@ -21,6 +21,7 @@ export interface Goal {
   readonly withdrawalWarningPercent: number;
   readonly createdAt: string;
   readonly completedAt?: string;
+  readonly iconDataUrl?: string;
 }
 
 export interface Transaction {
@@ -29,6 +30,7 @@ export interface Transaction {
   readonly kind: TransactionKind;
   readonly amountMinorUnits: number;
   readonly occurredAt: string;
+  readonly reason?: string;
 }
 
 export interface SavingsState {

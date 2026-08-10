@@ -27,7 +27,7 @@ export type StorageStatus =
   | { readonly kind: "session-only"; readonly message: string }
   | {
       readonly kind: "save-error";
-      readonly reason: "quota-exceeded" | "unavailable";
+      readonly reason: "invalid-data" | "quota-exceeded" | "unavailable";
       readonly message: string;
     };
 

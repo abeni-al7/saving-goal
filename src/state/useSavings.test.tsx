@@ -85,7 +85,7 @@ describe("useSavings", () => {
 
     await waitFor(() => expect(setItem).toHaveBeenCalledTimes(1));
     expect(JSON.parse(setItem.mock.calls[0][1])).toMatchObject({
-      version: 1,
+      version: 2,
       state: { goals: [{ name: "Emergency fund" }] },
     });
   });

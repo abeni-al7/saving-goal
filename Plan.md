@@ -59,7 +59,7 @@ Every implementation session must:
 - [ ] A user can add goal artwork while creating a goal and replace or remove it while editing without canceled changes leaking into saved state.
 - [ ] Goal artwork accepts decoded PNG, JPEG, and WebP sources no larger than 2 MB, preserves aspect ratio without cropping, and is normalized locally to a PNG no larger than 128px or 100 KB.
 - [ ] Each goal displays its artwork in a stable 56px region beside the goal name without clipping, overlap, or layout shifts on supported mobile and desktop viewports.
-- [ ] Valid version-one data migrates without user intervention, new changes persist as version two, and malformed or unsupported data remains preserved for recovery.
+- [x] Valid version-one data migrates without user intervention, new changes persist as version two, and malformed or unsupported data remains preserved for recovery.
 
 ---
 
@@ -319,22 +319,22 @@ Every implementation session must:
 
 **Outcome:** The persisted model supports optional withdrawal reasons and bounded goal artwork through a strict, backward-compatible version-two envelope.
 
-- [ ] Write failing schema tests for a valid version-two envelope containing an optional goal icon and withdrawal reason.
-- [ ] Write failing schema tests that reject blank or over-160-character reasons, reasons on opening or deposit records, malformed icon data URLs, icon payloads over 100 KB, and unknown fields.
-- [ ] Write failing migration tests proving valid version-one envelopes become version two without changing goals or transactions.
-- [ ] Preserve strict version-one validation so malformed legacy data is not accepted during migration.
-- [ ] Add optional `iconDataUrl` goal metadata and optional `reason` transaction metadata to `src/domain/types.ts`.
-- [ ] Add shared constants and pure validation helpers for normalized goal icon data URLs in `src/domain/goal-icons.ts`.
-- [ ] Implement distinct strict version-one and version-two schemas in `src/storage/schema.ts` and set the current storage version to two.
-- [ ] Implement a migration branch that validates version-one data before constructing a version-two envelope.
-- [ ] Keep malformed JSON, invalid data, and unknown future versions byte-for-byte preserved behind the existing recovery flow.
-- [ ] Update storage tests to prove saves emit version two and quota failures still retain the prior raw value.
+- [x] Write failing schema tests for a valid version-two envelope containing an optional goal icon and withdrawal reason.
+- [x] Write failing schema tests that reject blank or over-160-character reasons, reasons on opening or deposit records, malformed icon data URLs, icon payloads over 100 KB, and unknown fields.
+- [x] Write failing migration tests proving valid version-one envelopes become version two without changing goals or transactions.
+- [x] Preserve strict version-one validation so malformed legacy data is not accepted during migration.
+- [x] Add optional `iconDataUrl` goal metadata and optional `reason` transaction metadata to `src/domain/types.ts`.
+- [x] Add shared constants and pure validation helpers for normalized goal icon data URLs in `src/domain/goal-icons.ts`.
+- [x] Implement distinct strict version-one and version-two schemas in `src/storage/schema.ts` and set the current storage version to two.
+- [x] Implement a migration branch that validates version-one data before constructing a version-two envelope.
+- [x] Keep malformed JSON, invalid data, and unknown future versions byte-for-byte preserved behind the existing recovery flow.
+- [x] Update storage tests to prove saves emit version two and quota failures still retain the prior raw value.
 
 **Validation**
 
-- [ ] `npm test -- --run src/domain/goal-icons.test.ts src/storage/schema.test.ts src/storage/savings-storage.test.ts`
-- [ ] `npm run typecheck`
-- [ ] `npm run lint`
+- [x] `npm test -- --run src/domain/goal-icons.test.ts src/storage/schema.test.ts src/storage/savings-storage.test.ts`
+- [x] `npm run typecheck`
+- [x] `npm run lint`
 
 **Handoff:** Record the version-two shape, migration guarantees, icon payload calculation, and recovery behavior in the Session Log.
 
@@ -440,6 +440,13 @@ Every implementation session must:
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
+
+### 2026-08-10 - Session 10: Version-Two Data Contract
+
+- Completed: Added optional `iconDataUrl` goal metadata and withdrawal-only `reason` transaction metadata; introduced shared normalized-PNG data URL constants and validation; split storage validation into strict version-one and version-two schemas; migrated valid version-one state to version two without changing goals or transactions; and updated saves and hook expectations to emit version two while retaining existing recovery behavior.
+- Validation: The focused Session 10 command passed 35 tests across the goal-icon, schema, and storage suites; `npm test -- --run` passed 134 tests across 20 files; `npm run format:check`, `npm run typecheck`, and `npm run lint` passed; workspace diagnostics and `git diff --check` reported no relevant errors.
+- Decisions or deviations: Version two remains `{ version: 2, state: { goals, transactions } }`; a goal may include a syntactically valid `data:image/png;base64,` value with a nonempty encoded payload of at most 102,400 ASCII bytes, and only withdrawals may include a trimmed 1-160 character reason. Legacy data must pass the unchanged strict version-one field contract before its envelope version is promoted. Saves validate the complete version-two envelope before writing. Malformed JSON, invalid envelopes, unknown versions, schema-invalid saves, and the prior raw value after quota failures remain preserved byte-for-byte behind the recovery flow.
+- Next unchecked task: Session 11 - add optional withdrawal reasons throughout the domain, reducer, dialogs, dashboard, and activity history.
 
 ### 2026-08-09 - Session 9: Documentation And Release Gate
 
