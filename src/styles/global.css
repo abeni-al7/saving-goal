@@ -427,6 +427,11 @@ main {
   text-align: right;
 }
 
+.withdrawal-impact__reason {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .activity-list {
   grid-column: 1 / -1;
   display: grid;
@@ -448,6 +453,7 @@ main {
 
 .activity-list li > div {
   display: grid;
+  min-width: 0;
   gap: var(--space-1);
 }
 
@@ -457,10 +463,17 @@ main {
 }
 
 .activity-list__amount {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
   text-align: right;
+  white-space: nowrap;
+}
+
+.activity-list__reason {
+  max-width: 42rem;
+  margin: var(--space-1) 0 0;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
 }
 
 .activity-list time,
@@ -621,7 +634,8 @@ main {
   font-weight: 700;
 }
 
-.dialog-panel input {
+.dialog-panel input,
+.dialog-panel textarea {
   width: 100%;
   min-height: 2.75rem;
   padding: var(--space-2) var(--space-3);
@@ -631,7 +645,13 @@ main {
   background: var(--color-surface);
 }
 
-.dialog-panel input:focus {
+.dialog-panel textarea {
+  min-height: 5.5rem;
+  resize: vertical;
+}
+
+.dialog-panel input:focus,
+.dialog-panel textarea:focus {
   border-color: var(--color-progress-dark);
 }
 

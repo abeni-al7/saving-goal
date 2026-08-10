@@ -40,6 +40,7 @@ export function GoalsDashboard({
     goal: SavingsState["goals"][number],
     mode: TransactionMode,
     amountMinorUnits: number,
+    reason?: string,
   ): "confirmation-required" | void => {
     if (mode === "deposit") {
       dispatch({
@@ -62,6 +63,7 @@ export function GoalsDashboard({
       type: "withdrawal/request",
       goalId: goal.id,
       amountMinorUnits,
+      reason,
     });
     if (!evaluation.requiresConfirmation) {
       setAnnouncement(withdrawalAnnouncement(goal, amountMinorUnits));
@@ -113,8 +115,8 @@ export function GoalsDashboard({
                   dispatch({ type: "goal/edit", goalId: goal.id, input });
                   setAnnouncement(`${input.name.trim()} updated.`);
                 }}
-                onRecordTransaction={(mode, amountMinorUnits) =>
-                  recordTransaction(goal, mode, amountMinorUnits)
+                onRecordTransaction={(mode, amountMinorUnits, reason) =>
+                  recordTransaction(goal, mode, amountMinorUnits, reason)
                 }
                 onTransactionOpen={(trigger) => {
                   transactionReturnFocusRef.current = trigger;
@@ -139,6 +141,7 @@ export function GoalsDashboard({
           amountMinorUnits={pendingWithdrawal.amountMinorUnits}
           goal={pendingGoal}
           impactPercent={pendingWithdrawal.impactPercent}
+          reason={pendingWithdrawal.reason}
           projectedBalanceMinorUnits={
             pendingWithdrawal.projectedBalanceMinorUnits
           }

@@ -2,7 +2,10 @@ import { CirclePlus } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { formatMinorUnits, parseAmountToMinorUnits } from "../domain/money";
 import { calculateProgress } from "../domain/progress";
-import { projectTransactionBalance } from "../domain/transactions";
+import {
+  MAX_WITHDRAWAL_REASON_LENGTH,
+  projectTransactionBalance,
+} from "../domain/transactions";
 import type { Goal } from "../domain/types";
 import { containDialogFocus } from "./dialog-focus";
 
@@ -15,6 +18,7 @@ interface TransactionDialogProps {
   readonly onSubmit: (
     mode: TransactionMode,
     amountMinorUnits: number,
+    reason?: string,
   ) => "confirmation-required" | void;
 }
 
@@ -27,9 +31,11 @@ export function TransactionDialog({
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<TransactionMode>("deposit");
   const [amount, setAmount] = useState("");
+  const [reason, setReason] = useState("");
   const [error, setError] = useState<string>();
   const titleId = useId();
   const amountId = useId();
+  const reasonId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const amountRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLElement>(null);
@@ -76,7 +82,11 @@ export function TransactionDialog({
       return;
     }
 
-    const result = onSubmit(mode, parsedAmount.value);
+    const normalizedReason = reason.trim() || undefined;
+    const result =
+      mode === "withdrawal"
+        ? onSubmit(mode, parsedAmount.value, normalizedReason)
+        : onSubmit(mode, parsedAmount.value);
     closeDialog(result !== "confirmation-required");
   }
 
@@ -93,6 +103,7 @@ export function TransactionDialog({
           }
           setMode("deposit");
           setAmount("");
+          setReason("");
           setError(undefined);
           setIsOpen(true);
         }}
@@ -169,6 +180,20 @@ export function TransactionDialog({
                   {displayedError}
                 </p>
               )}
+
+              {mode === "withdrawal" ? (
+                <>
+                  <label htmlFor={reasonId}>Reason (optional)</label>
+                  <textarea
+                    id={reasonId}
+                    maxLength={MAX_WITHDRAWAL_REASON_LENGTH}
+                    name="reason"
+                    rows={3}
+                    value={reason}
+                    onChange={(event) => setReason(event.currentTarget.value)}
+                  />
+                </>
+              ) : null}
 
               {projectedBalanceMinorUnits === undefined ||
               projectedProgress === undefined ? null : (

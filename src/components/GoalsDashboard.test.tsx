@@ -156,6 +156,10 @@ describe("GoalsDashboard", () => {
     );
     await user.click(screen.getByRole("button", { name: "Withdrawal" }));
     await user.type(screen.getByRole("textbox", { name: "Amount" }), "10");
+    await user.type(
+      screen.getByRole("textbox", { name: "Reason (optional)" }),
+      "  Prescription refill  ",
+    );
     await user.click(screen.getByRole("button", { name: "Record withdrawal" }));
 
     expect(
@@ -167,6 +171,7 @@ describe("GoalsDashboard", () => {
     expect(
       screen.getByRole("list", { name: "Activity for Emergency fund" }),
     ).toHaveTextContent("-$10.00");
+    expect(screen.getByText("Prescription refill")).toBeInTheDocument();
   });
 
   it("preserves activity on warning cancellation and records once on confirmation", async () => {
@@ -181,13 +186,21 @@ describe("GoalsDashboard", () => {
     await user.click(transactionTrigger);
     await user.click(screen.getByRole("button", { name: "Withdrawal" }));
     await user.type(screen.getByRole("textbox", { name: "Amount" }), "20");
+    await user.type(
+      screen.getByRole("textbox", { name: "Reason (optional)" }),
+      "Roof repair",
+    );
     await user.click(screen.getByRole("button", { name: "Record withdrawal" }));
 
     expect(
       screen.getByRole("dialog", { name: "Confirm large withdrawal" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Keep savings" })).toHaveFocus();
+    expect(screen.getByText("Roof repair")).toBeInTheDocument();
     expect(within(activity()).getAllByRole("listitem")).toHaveLength(1);
+    expect(
+      within(activity()).queryByText("Roof repair"),
+    ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Keep savings" }));
     expect(
@@ -200,6 +213,10 @@ describe("GoalsDashboard", () => {
     await user.click(transactionTrigger);
     await user.click(screen.getByRole("button", { name: "Withdrawal" }));
     await user.type(screen.getByRole("textbox", { name: "Amount" }), "20");
+    await user.type(
+      screen.getByRole("textbox", { name: "Reason (optional)" }),
+      "Roof repair",
+    );
     await user.click(screen.getByRole("button", { name: "Record withdrawal" }));
     await user.click(
       screen.getByRole("button", { name: "Confirm withdrawal" }),
@@ -207,6 +224,7 @@ describe("GoalsDashboard", () => {
 
     expect(within(activity()).getAllByRole("listitem")).toHaveLength(2);
     expect(within(activity()).getByText("-$20.00")).toBeInTheDocument();
+    expect(within(activity()).getAllByText("Roof repair")).toHaveLength(1);
     expect(screen.getByRole("status")).toHaveTextContent(
       "$20.00 withdrawn from Emergency fund.",
     );

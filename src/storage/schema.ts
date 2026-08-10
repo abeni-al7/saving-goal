@@ -1,12 +1,12 @@
 import { z } from "zod";
 import { isNormalizedGoalIconDataUrl } from "../domain/goal-icons";
+import { MAX_WITHDRAWAL_REASON_LENGTH } from "../domain/transactions";
 import type { SavingsState } from "../domain/types";
 
 export const SAVINGS_STORAGE_KEY = "saving-goal:state";
 export const SAVINGS_SCHEMA_VERSION = 2 as const;
 
 const LEGACY_SAVINGS_SCHEMA_VERSION = 1 as const;
-const MAX_WITHDRAWAL_REASON_LENGTH = 160;
 const safeInteger = z.number().int().safe();
 const timestamp = z.iso.datetime({ offset: true });
 const supportedCurrencies = new Set(Intl.supportedValuesOf("currency"));

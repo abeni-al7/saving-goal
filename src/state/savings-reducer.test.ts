@@ -102,11 +102,16 @@ describe("savings reducer", () => {
       type: "withdrawal/request",
       goalId,
       amountMinorUnits: 1000,
+      reason: "  New brake pads  ",
     });
 
     expect(withdrawn.pendingWithdrawal).toBeNull();
     expect(withdrawn.savings.transactions.at(-1)).toEqual(
-      expect.objectContaining({ kind: "withdrawal", amountMinorUnits: 1000 }),
+      expect.objectContaining({
+        kind: "withdrawal",
+        amountMinorUnits: 1000,
+        reason: "New brake pads",
+      }),
     );
   });
 
@@ -117,6 +122,7 @@ describe("savings reducer", () => {
       type: "withdrawal/request",
       goalId,
       amountMinorUnits: 1001,
+      reason: "  Urgent repair  ",
     });
 
     expect(warned.savings).toBe(state.savings);
@@ -125,6 +131,7 @@ describe("savings reducer", () => {
       amountMinorUnits: 1001,
       projectedBalanceMinorUnits: 3999,
       impactPercent: 20.02,
+      reason: "Urgent repair",
     });
 
     const confirmed = reducer(warned, { type: "withdrawal/confirm" });
@@ -132,7 +139,28 @@ describe("savings reducer", () => {
     expect(confirmed.savings.transactions).toHaveLength(
       state.savings.transactions.length + 1,
     );
-    expect(confirmed.savings.transactions.at(-1)?.kind).toBe("withdrawal");
+    expect(confirmed.savings.transactions.at(-1)).toEqual(
+      expect.objectContaining({
+        kind: "withdrawal",
+        reason: "Urgent repair",
+      }),
+    );
+  });
+
+  it("cancels a warned withdrawal reason without changing savings", () => {
+    const { state, reducer, goalId } = stateWithGoal();
+    const warned = reducer(state, {
+      type: "withdrawal/request",
+      goalId,
+      amountMinorUnits: 1001,
+      reason: "Unexpected expense",
+    });
+
+    const canceled = reducer(warned, { type: "withdrawal/cancel" });
+
+    expect(canceled.pendingWithdrawal).toBeNull();
+    expect(canceled.savings).toBe(state.savings);
+    expect(canceled.revision).toBe(state.revision);
   });
 
   it("rejects an overdraft without changing state", () => {

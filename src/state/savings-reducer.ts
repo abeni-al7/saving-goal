@@ -9,6 +9,7 @@ import { recordFirstCompletion } from "../domain/progress";
 import {
   deleteGoal,
   deriveBalance,
+  normalizeWithdrawalReason,
   recordTransaction,
 } from "../domain/transactions";
 import type { GoalId, SavingsState } from "../domain/types";
@@ -36,6 +37,7 @@ export interface PendingWithdrawal {
   readonly amountMinorUnits: number;
   readonly projectedBalanceMinorUnits: number;
   readonly impactPercent: number;
+  readonly reason?: string;
 }
 
 export interface SavingsReducerState {
@@ -61,6 +63,7 @@ export type SavingsAction =
       readonly type: "withdrawal/request";
       readonly goalId: GoalId;
       readonly amountMinorUnits: number;
+      readonly reason?: string;
     }
   | { readonly type: "withdrawal/confirm" }
   | { readonly type: "withdrawal/cancel" }
@@ -146,6 +149,7 @@ export function createSavingsReducer(providers: DomainProviders) {
 
       case "withdrawal/request": {
         const goal = findGoal(state.savings, action.goalId);
+        const reason = normalizeWithdrawalReason(action.reason);
         const evaluation = evaluateWithdrawal({
           amountMinorUnits: action.amountMinorUnits,
           currentBalanceMinorUnits: deriveBalance(
@@ -163,6 +167,7 @@ export function createSavingsReducer(providers: DomainProviders) {
               amountMinorUnits: action.amountMinorUnits,
               projectedBalanceMinorUnits: evaluation.projectedBalanceMinorUnits,
               impactPercent: evaluation.impactPercent,
+              ...(reason === undefined ? {} : { reason }),
             },
           };
         }
@@ -173,6 +178,7 @@ export function createSavingsReducer(providers: DomainProviders) {
             state.savings,
             action.goalId,
             action.amountMinorUnits,
+            reason,
             providers,
           ),
         );
@@ -189,6 +195,7 @@ export function createSavingsReducer(providers: DomainProviders) {
             state.savings,
             state.pendingWithdrawal.goalId,
             state.pendingWithdrawal.amountMinorUnits,
+            state.pendingWithdrawal.reason,
             providers,
           ),
         );
@@ -223,11 +230,12 @@ function recordWithdrawal(
   state: SavingsState,
   goalId: GoalId,
   amountMinorUnits: number,
+  reason: string | undefined,
   providers: DomainProviders,
 ): SavingsState {
   return recordTransaction(
     state,
-    { goalId, kind: "withdrawal", amountMinorUnits },
+    { goalId, kind: "withdrawal", amountMinorUnits, reason },
     providers,
   );
 }

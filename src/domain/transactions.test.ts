@@ -62,6 +62,73 @@ describe("transactions", () => {
     });
   });
 
+  it.each([
+    { label: "an omitted reason", reason: undefined },
+    { label: "a whitespace-only reason", reason: "   \n  " },
+  ])("omits $label from a withdrawal", ({ reason }) => {
+    const initialState = stateWithGoal();
+    const goalId = initialState.goals[0].id;
+
+    const withdrawn = recordTransaction(
+      initialState,
+      {
+        goalId,
+        kind: "withdrawal",
+        amountMinorUnits: 100,
+        reason,
+      },
+      providers("withdrawal-reason", "2026-08-09T11:00:00.000Z"),
+    );
+
+    expect(withdrawn.transactions.at(-1)).not.toHaveProperty("reason");
+  });
+
+  it("trims and records a withdrawal reason up to 160 characters", () => {
+    const initialState = stateWithGoal();
+    const goalId = initialState.goals[0].id;
+    const reason = "r".repeat(160);
+
+    const trimmed = recordTransaction(
+      initialState,
+      {
+        goalId,
+        kind: "withdrawal",
+        amountMinorUnits: 100,
+        reason: "  Planned repair  ",
+      },
+      providers("withdrawal-trimmed", "2026-08-09T11:00:00.000Z"),
+    );
+    const atLimit = recordTransaction(
+      initialState,
+      { goalId, kind: "withdrawal", amountMinorUnits: 100, reason },
+      providers("withdrawal-limit", "2026-08-09T11:00:00.000Z"),
+    );
+
+    expect(trimmed.transactions.at(-1)).toHaveProperty(
+      "reason",
+      "Planned repair",
+    );
+    expect(atLimit.transactions.at(-1)).toHaveProperty("reason", reason);
+  });
+
+  it("rejects a withdrawal reason over 160 characters", () => {
+    const initialState = stateWithGoal();
+    const goalId = initialState.goals[0].id;
+
+    expect(() =>
+      recordTransaction(
+        initialState,
+        {
+          goalId,
+          kind: "withdrawal",
+          amountMinorUnits: 100,
+          reason: "r".repeat(161),
+        },
+        providers("withdrawal-long", "2026-08-09T11:00:00.000Z"),
+      ),
+    ).toThrow("Withdrawal reason must be 160 characters or fewer.");
+  });
+
   it("derives the balance from the immutable ledger", () => {
     const initialState = stateWithGoal();
     const goalId = initialState.goals[0].id;

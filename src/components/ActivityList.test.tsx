@@ -30,6 +30,7 @@ function activityFixture() {
     kind: "withdrawal",
     amountMinorUnits: 5_000,
     occurredAt: "2026-08-09T09:00:00.000Z",
+    reason: "Emergency dentist visit",
   };
 
   return {
@@ -50,6 +51,9 @@ describe("ActivityList", () => {
     expect(within(items[0]).getByText("$500.00")).toBeInTheDocument();
     expect(within(items[1]).getByText("Withdrawal")).toBeInTheDocument();
     expect(within(items[1]).getByText("-$50.00")).toBeInTheDocument();
+    expect(
+      within(items[1]).getByText("Emergency dentist visit"),
+    ).toBeInTheDocument();
     expect(within(items[2]).getByText("Deposit")).toBeInTheDocument();
     expect(within(items[2]).getByText("$100.00")).toBeInTheDocument();
     expect(screen.getAllByText(/Aug 9, 2026/)).toHaveLength(3);
@@ -60,5 +64,38 @@ describe("ActivityList", () => {
     render(<ActivityList goal={goal} transactions={[]} />);
 
     expect(screen.getByText("No activity yet.")).toBeInTheDocument();
+  });
+
+  it("omits reason markup when a withdrawal has no reason", () => {
+    const { goal, transactions } = activityFixture();
+    const withoutReason = transactions.map((transaction) =>
+      transaction.kind === "withdrawal"
+        ? { ...transaction, reason: undefined }
+        : transaction,
+    );
+
+    render(
+      <ActivityList goal={goal} locale="en-US" transactions={withoutReason} />,
+    );
+
+    expect(screen.queryByTestId("withdrawal-reason")).not.toBeInTheDocument();
+  });
+
+  it("keeps a long withdrawal reason with its matching activity metadata", () => {
+    const { goal, transactions } = activityFixture();
+    const longReason = "r".repeat(160);
+    const withLongReason = transactions.map((transaction) =>
+      transaction.kind === "withdrawal"
+        ? { ...transaction, reason: longReason }
+        : transaction,
+    );
+
+    render(
+      <ActivityList goal={goal} locale="en-US" transactions={withLongReason} />,
+    );
+
+    expect(screen.getByTestId("withdrawal-reason")).toHaveTextContent(
+      longReason,
+    );
   });
 });

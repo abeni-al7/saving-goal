@@ -53,9 +53,9 @@ Every implementation session must:
 - [x] Goal deletion names the goal, warns about history loss, and cascades only after confirmation.
 - [x] Valid data survives refreshes; corrupt or unavailable storage is not silently overwritten.
 - [x] Primary workflows work on mobile and desktop with keyboard navigation and reduced motion.
-- [ ] A user can optionally add a withdrawal reason; blank reasons are omitted and nonblank reasons are trimmed and limited to 160 characters.
-- [ ] An ordinary or warned withdrawal preserves its reason in exactly one immutable ledger record and displays it with the matching activity entry.
-- [ ] Deposits and opening balances cannot receive withdrawal-reason metadata.
+- [x] A user can optionally add a withdrawal reason; blank reasons are omitted and nonblank reasons are trimmed and limited to 160 characters.
+- [x] An ordinary or warned withdrawal preserves its reason in exactly one immutable ledger record and displays it with the matching activity entry.
+- [x] Deposits and opening balances cannot receive withdrawal-reason metadata.
 - [ ] A user can add goal artwork while creating a goal and replace or remove it while editing without canceled changes leaking into saved state.
 - [ ] Goal artwork accepts decoded PNG, JPEG, and WebP sources no larger than 2 MB, preserves aspect ratio without cropping, and is normalized locally to a PNG no larger than 128px or 100 KB.
 - [ ] Each goal displays its artwork in a stable 56px region beside the goal name without clipping, overlap, or layout shifts on supported mobile and desktop viewports.
@@ -346,24 +346,24 @@ Every implementation session must:
 
 **Outcome:** Users can attach a concise optional reason to a withdrawal, including withdrawals that require confirmation, and review it in immutable activity history.
 
-- [ ] Write failing transaction-domain tests for omitted, whitespace-only, trimmed, exactly 160-character, and overlength reasons.
-- [ ] Extend `RecordTransactionInput` and `recordTransaction` so only withdrawals can store a validated reason and deposits remain unchanged.
-- [ ] Write failing reducer tests proving ordinary withdrawals record a reason immediately and warned withdrawals preserve it through request, confirmation, and cancellation.
-- [ ] Extend `PendingWithdrawal`, withdrawal actions, and reducer helpers without changing amount, warning, completion, or revision semantics.
-- [ ] Write failing `TransactionDialog` tests for a withdrawal-only `Reason (optional)` field, its 160-character limit, mode switching, reset-on-open behavior, and trimmed submission.
-- [ ] Add the reason field to withdrawal mode in `src/components/TransactionDialog.tsx`; omit it from deposit submissions and preserve existing amount focus and error behavior.
-- [ ] Write failing warning-dialog and dashboard tests proving the pending reason is reviewable and reaches exactly one confirmed transaction.
-- [ ] Show the pending reason in `src/components/WithdrawalWarningDialog.tsx` and thread it through `GoalCard` and `GoalsDashboard` callbacks.
-- [ ] Write failing activity tests for present, absent, and long reasons.
-- [ ] Render withdrawal reasons beneath their matching activity metadata with wrapping styles that do not disturb amount alignment.
-- [ ] Preserve existing live announcements, trigger-focus restoration, overdraft blocking, and exact-threshold warning behavior.
+- [x] Write failing transaction-domain tests for omitted, whitespace-only, trimmed, exactly 160-character, and overlength reasons.
+- [x] Extend `RecordTransactionInput` and `recordTransaction` so only withdrawals can store a validated reason and deposits remain unchanged.
+- [x] Write failing reducer tests proving ordinary withdrawals record a reason immediately and warned withdrawals preserve it through request, confirmation, and cancellation.
+- [x] Extend `PendingWithdrawal`, withdrawal actions, and reducer helpers without changing amount, warning, completion, or revision semantics.
+- [x] Write failing `TransactionDialog` tests for a withdrawal-only `Reason (optional)` field, its 160-character limit, mode switching, reset-on-open behavior, and trimmed submission.
+- [x] Add the reason field to withdrawal mode in `src/components/TransactionDialog.tsx`; omit it from deposit submissions and preserve existing amount focus and error behavior.
+- [x] Write failing warning-dialog and dashboard tests proving the pending reason is reviewable and reaches exactly one confirmed transaction.
+- [x] Show the pending reason in `src/components/WithdrawalWarningDialog.tsx` and thread it through `GoalCard` and `GoalsDashboard` callbacks.
+- [x] Write failing activity tests for present, absent, and long reasons.
+- [x] Render withdrawal reasons beneath their matching activity metadata with wrapping styles that do not disturb amount alignment.
+- [x] Preserve existing live announcements, trigger-focus restoration, overdraft blocking, and exact-threshold warning behavior.
 
 **Validation**
 
-- [ ] `npm test -- --run src/domain/transactions.test.ts src/state/savings-reducer.test.ts`
-- [ ] `npm test -- --run src/components/TransactionDialog.test.tsx src/components/WithdrawalWarningDialog.test.tsx src/components/ActivityList.test.tsx src/components/GoalsDashboard.test.tsx`
-- [ ] `npm run typecheck`
-- [ ] `npm run lint`
+- [x] `npm test -- --run src/domain/transactions.test.ts src/state/savings-reducer.test.ts`
+- [x] `npm test -- --run src/components/TransactionDialog.test.tsx src/components/WithdrawalWarningDialog.test.tsx src/components/ActivityList.test.tsx src/components/GoalsDashboard.test.tsx`
+- [x] `npm run typecheck`
+- [x] `npm run lint`
 
 **Handoff:** Record reason normalization, confirmation propagation, display behavior, and boundary cases in the Session Log.
 
@@ -440,6 +440,13 @@ Every implementation session must:
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
+
+### 2026-08-10 - Session 11: Optional Withdrawal Reasons
+
+- Completed: Added a withdrawal-only optional reason across the transaction domain, reducer pending state, transaction and warning dialogs, dashboard callbacks, and immutable activity history. Blank reasons are omitted, nonblank reasons are trimmed, the shared 160-character limit is enforced by the domain, storage schema, and UI, and long activity reasons wrap without shifting right-aligned amounts.
+- Validation: The Session 11 domain and reducer command passed 22 tests; the component command passed 19 tests; `npm test -- --run` passed 143 tests across 20 files; `npm run format:check`, `npm run typecheck`, `npm run lint`, and `git diff --check` passed. Changed production files report no diagnostics; the existing goal-icon test retains a stale editor-only missing-module diagnostic despite passing TypeScript and Vitest resolution.
+- Decisions or deviations: `RecordTransactionInput` is discriminated so deposits cannot accept reason metadata, and runtime construction also omits reasons unless the kind is `withdrawal`. Warned withdrawals store the normalized reason only in pending state until confirmation; cancellation preserves savings and revision, while confirmation creates exactly one record. Existing amount focus, overdraft blocking, exact-threshold behavior, announcements, and trigger-focus restoration remain unchanged. Browser persistence, mobile wrapping, and real-browser focus coverage remain Session 13 scope.
+- Next unchecked task: Session 12 - add custom goal artwork domain semantics, browser normalization, goal-dialog controls, and stable goal-card presentation.
 
 ### 2026-08-10 - Session 10: Version-Two Data Contract
 

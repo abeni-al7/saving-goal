@@ -35,6 +35,15 @@ export function ActivityList({
             <time dateTime={transaction.occurredAt}>
               {dateFormatter.format(new Date(transaction.occurredAt))}
             </time>
+            {transaction.kind === "withdrawal" &&
+            transaction.reason !== undefined ? (
+              <p
+                className="activity-list__reason"
+                data-testid="withdrawal-reason"
+              >
+                {transaction.reason}
+              </p>
+            ) : null}
           </div>
           <span className="activity-list__amount">
             {formatMinorUnits(

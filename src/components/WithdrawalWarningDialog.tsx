@@ -8,6 +8,7 @@ interface WithdrawalWarningDialogProps {
   readonly amountMinorUnits: number;
   readonly projectedBalanceMinorUnits: number;
   readonly impactPercent: number;
+  readonly reason?: string;
   readonly onCancel: () => void;
   readonly onConfirm: () => void;
 }
@@ -17,6 +18,7 @@ export function WithdrawalWarningDialog({
   amountMinorUnits,
   projectedBalanceMinorUnits,
   impactPercent,
+  reason,
   onCancel,
   onConfirm,
 }: WithdrawalWarningDialogProps) {
@@ -67,6 +69,12 @@ export function WithdrawalWarningDialog({
             <dt>Impact</dt>
             <dd>{impactPercent}% of the current balance</dd>
           </div>
+          {reason === undefined ? null : (
+            <div>
+              <dt>Reason</dt>
+              <dd className="withdrawal-impact__reason">{reason}</dd>
+            </div>
+          )}
         </dl>
         <div className="dialog-actions">
           <button

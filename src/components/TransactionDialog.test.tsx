@@ -38,6 +38,9 @@ describe("TransactionDialog", () => {
     );
     await user.click(screen.getByRole("button", { name: "Withdrawal" }));
     await user.type(screen.getByRole("textbox", { name: "Amount" }), "200");
+    const reason = screen.getByRole("textbox", { name: "Reason (optional)" });
+    expect(reason).toHaveAttribute("maxlength", "160");
+    await user.type(reason, "  Planned car repair  ");
 
     expect(screen.getByText("Projected balance")).toBeInTheDocument();
     expect(screen.getByText("$300.00")).toBeInTheDocument();
@@ -47,7 +50,11 @@ describe("TransactionDialog", () => {
     await user.click(screen.getByRole("button", { name: "Record withdrawal" }));
 
     expect(onSubmit).toHaveBeenCalledOnce();
-    expect(onSubmit).toHaveBeenCalledWith("withdrawal", 20_000);
+    expect(onSubmit).toHaveBeenCalledWith(
+      "withdrawal",
+      20_000,
+      "Planned car repair",
+    );
   });
 
   it("previews and submits a deposit", async () => {
@@ -66,6 +73,9 @@ describe("TransactionDialog", () => {
         name: "Add transaction for Emergency fund",
       }),
     );
+    expect(
+      screen.queryByRole("textbox", { name: "Reason (optional)" }),
+    ).not.toBeInTheDocument();
     await user.type(screen.getByRole("textbox", { name: "Amount" }), "100");
 
     expect(screen.getByText("$600.00")).toBeInTheDocument();
@@ -73,6 +83,63 @@ describe("TransactionDialog", () => {
     await user.click(screen.getByRole("button", { name: "Record deposit" }));
 
     expect(onSubmit).toHaveBeenCalledWith("deposit", 10_000);
+  });
+
+  it("omits a withdrawal reason after switching to deposit", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(
+      <TransactionDialog
+        currentBalanceMinorUnits={50_000}
+        goal={emergencyFundGoal()}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Add transaction for Emergency fund",
+      }),
+    );
+    await user.click(screen.getByRole("button", { name: "Withdrawal" }));
+    await user.type(
+      screen.getByRole("textbox", { name: "Reason (optional)" }),
+      "Should not leak",
+    );
+    await user.click(screen.getByRole("button", { name: "Deposit" }));
+    await user.type(screen.getByRole("textbox", { name: "Amount" }), "25");
+    await user.click(screen.getByRole("button", { name: "Record deposit" }));
+
+    expect(onSubmit).toHaveBeenCalledWith("deposit", 2500);
+  });
+
+  it("resets the reason each time the dialog opens", async () => {
+    const user = userEvent.setup();
+    render(
+      <TransactionDialog
+        currentBalanceMinorUnits={50_000}
+        goal={emergencyFundGoal()}
+        onSubmit={vi.fn()}
+      />,
+    );
+    const trigger = screen.getByRole("button", {
+      name: "Add transaction for Emergency fund",
+    });
+
+    await user.click(trigger);
+    await user.click(screen.getByRole("button", { name: "Withdrawal" }));
+    await user.type(
+      screen.getByRole("textbox", { name: "Reason (optional)" }),
+      "Temporary reason",
+    );
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    await user.click(trigger);
+    expect(screen.getByRole("textbox", { name: "Amount" })).toHaveFocus();
+    await user.click(screen.getByRole("button", { name: "Withdrawal" }));
+
+    expect(
+      screen.getByRole("textbox", { name: "Reason (optional)" }),
+    ).toHaveValue("");
   });
 
   it("links malformed amount errors to the field", async () => {

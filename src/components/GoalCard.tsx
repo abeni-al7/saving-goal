@@ -18,6 +18,7 @@ interface GoalCardProps {
   readonly onRecordTransaction: (
     mode: TransactionMode,
     amountMinorUnits: number,
+    reason?: string,
   ) => "confirmation-required" | void;
   readonly onTransactionOpen: (trigger: HTMLButtonElement) => void;
 }

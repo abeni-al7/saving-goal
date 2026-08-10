@@ -30,6 +30,7 @@ describe("WithdrawalWarningDialog", () => {
         goal={emergencyFundGoal()}
         impactPercent={40}
         projectedBalanceMinorUnits={30_000}
+        reason="Urgent boiler repair"
         onCancel={onCancel}
         onConfirm={onConfirm}
       />,
@@ -41,6 +42,7 @@ describe("WithdrawalWarningDialog", () => {
     expect(screen.getByText("$200.00")).toBeInTheDocument();
     expect(screen.getByText("$300.00")).toBeInTheDocument();
     expect(screen.getByText("40% of the current balance")).toBeInTheDocument();
+    expect(screen.getByText("Urgent boiler repair")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Keep savings" }));
     expect(onCancel).toHaveBeenCalledOnce();

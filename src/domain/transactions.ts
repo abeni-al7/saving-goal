@@ -9,11 +9,21 @@ import type {
 
 type RecordableTransactionKind = Exclude<TransactionKind, "opening">;
 
-export interface RecordTransactionInput {
-  readonly goalId: GoalId;
-  readonly kind: RecordableTransactionKind;
-  readonly amountMinorUnits: number;
-}
+export const MAX_WITHDRAWAL_REASON_LENGTH = 160;
+
+export type RecordTransactionInput =
+  | {
+      readonly goalId: GoalId;
+      readonly kind: "deposit";
+      readonly amountMinorUnits: number;
+      readonly reason?: never;
+    }
+  | {
+      readonly goalId: GoalId;
+      readonly kind: "withdrawal";
+      readonly amountMinorUnits: number;
+      readonly reason?: string;
+    };
 
 export function recordTransaction(
   state: SavingsState,
@@ -37,18 +47,42 @@ export function recordTransaction(
     input.amountMinorUnits,
   );
 
+  const reason =
+    input.kind === "withdrawal"
+      ? normalizeWithdrawalReason(input.reason)
+      : undefined;
+
   const transaction: Transaction = {
     id: providers.createId() as TransactionId,
     goalId: input.goalId,
     kind: input.kind,
     amountMinorUnits: input.amountMinorUnits,
     occurredAt: providers.now(),
+    ...(reason === undefined ? {} : { reason }),
   };
 
   return {
     ...state,
     transactions: [...state.transactions, transaction],
   };
+}
+
+export function normalizeWithdrawalReason(
+  reason: string | undefined,
+): string | undefined {
+  const normalized = reason?.trim();
+
+  if (normalized === undefined || normalized.length === 0) {
+    return undefined;
+  }
+
+  if (normalized.length > MAX_WITHDRAWAL_REASON_LENGTH) {
+    throw new Error(
+      `Withdrawal reason must be ${MAX_WITHDRAWAL_REASON_LENGTH} characters or fewer.`,
+    );
+  }
+
+  return normalized;
 }
 
 export function projectTransactionBalance(
