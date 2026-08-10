@@ -8,6 +8,7 @@ import {
   parseAmountToMinorUnits,
 } from "../domain/money";
 import type { Goal } from "../domain/types";
+import { DialogSurface } from "./DialogSurface";
 import { containDialogFocus } from "./dialog-focus";
 
 interface FieldErrors {
@@ -59,7 +60,6 @@ export function GoalFormDialog(props: GoalFormDialogProps) {
     cancelPendingUpload();
     setIsOpen(false);
     setIsProcessingArtwork(false);
-    queueMicrotask(() => triggerRef.current?.focus());
   }
 
   function openDialog(): void {
@@ -203,227 +203,215 @@ export function GoalFormDialog(props: GoalFormDialogProps) {
         )}
       </button>
 
-      {isOpen ? (
-        <div className="dialog-backdrop" role="presentation">
-          <section
-            aria-labelledby={titleId}
-            aria-modal="true"
-            className="dialog-panel"
-            ref={panelRef}
-            role="dialog"
-            onKeyDown={(event) => {
-              if (event.key === "Escape") {
-                closeDialog();
-                return;
+      <DialogSurface
+        isOpen={isOpen}
+        labelledBy={titleId}
+        panelRef={panelRef}
+        onExitComplete={() => {
+          if (!isOpen) {
+            triggerRef.current?.focus();
+          }
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            closeDialog();
+            return;
+          }
+
+          containDialogFocus(event, panelRef.current);
+        }}
+      >
+        <h2 id={titleId}>
+          {isEdit ? "Edit saving goal" : "Create a saving goal"}
+        </h2>
+        <form noValidate onSubmit={handleSubmit}>
+          <label htmlFor={`${titleId}-name`}>Goal name</label>
+          <input
+            aria-describedby={
+              errors.name === undefined ? undefined : `${titleId}-name-error`
+            }
+            aria-invalid={errors.name === undefined ? undefined : true}
+            id={`${titleId}-name`}
+            ref={nameRef}
+            defaultValue={goal?.name}
+            name="name"
+            type="text"
+          />
+          {errors.name === undefined ? null : (
+            <p className="field-error" id={`${titleId}-name-error`}>
+              {errors.name}
+            </p>
+          )}
+
+          <label htmlFor={`${titleId}-target`}>Target amount</label>
+          <input
+            aria-describedby={
+              errors.targetAmount === undefined
+                ? undefined
+                : `${titleId}-target-error`
+            }
+            aria-invalid={errors.targetAmount === undefined ? undefined : true}
+            id={`${titleId}-target`}
+            defaultValue={
+              goal === null
+                ? undefined
+                : minorUnitsToInputValue(goal.targetMinorUnits, goal.currency)
+            }
+            inputMode="decimal"
+            name="targetAmount"
+            type="text"
+          />
+          {errors.targetAmount === undefined ? null : (
+            <p className="field-error" id={`${titleId}-target-error`}>
+              {errors.targetAmount}
+            </p>
+          )}
+
+          <label htmlFor={`${titleId}-opening`}>Opening balance</label>
+          <input
+            aria-describedby={
+              errors.openingBalanceAmount === undefined
+                ? undefined
+                : `${titleId}-opening-error`
+            }
+            aria-invalid={
+              errors.openingBalanceAmount === undefined ? undefined : true
+            }
+            id={`${titleId}-opening`}
+            defaultValue={
+              props.mode === "edit"
+                ? minorUnitsToInputValue(
+                    props.openingBalanceMinorUnits,
+                    props.goal.currency,
+                  )
+                : "0"
+            }
+            disabled={isEdit}
+            inputMode="decimal"
+            name="openingBalanceAmount"
+            type="text"
+          />
+          {errors.openingBalanceAmount === undefined ? null : (
+            <p className="field-error" id={`${titleId}-opening-error`}>
+              {errors.openingBalanceAmount}
+            </p>
+          )}
+
+          <label htmlFor={`${titleId}-currency`}>Currency</label>
+          <input
+            aria-describedby={
+              errors.currency === undefined
+                ? undefined
+                : `${titleId}-currency-error`
+            }
+            aria-invalid={errors.currency === undefined ? undefined : true}
+            id={`${titleId}-currency`}
+            defaultValue={goal?.currency ?? "USD"}
+            disabled={isEdit}
+            maxLength={3}
+            name="currency"
+            type="text"
+          />
+          {errors.currency === undefined ? null : (
+            <p className="field-error" id={`${titleId}-currency-error`}>
+              {errors.currency}
+            </p>
+          )}
+
+          <label htmlFor={`${titleId}-threshold`}>
+            Withdrawal warning threshold (%)
+          </label>
+          <input
+            aria-describedby={
+              errors.withdrawalWarningPercent === undefined
+                ? undefined
+                : `${titleId}-threshold-error`
+            }
+            aria-invalid={
+              errors.withdrawalWarningPercent === undefined ? undefined : true
+            }
+            id={`${titleId}-threshold`}
+            defaultValue={goal?.withdrawalWarningPercent ?? 20}
+            max="100"
+            min="0"
+            name="withdrawalWarningPercent"
+            step="1"
+            type="number"
+          />
+          {errors.withdrawalWarningPercent === undefined ? null : (
+            <p className="field-error" id={`${titleId}-threshold-error`}>
+              {errors.withdrawalWarningPercent}
+            </p>
+          )}
+
+          <div className="goal-artwork-field">
+            <label htmlFor={`${titleId}-artwork`}>
+              {iconDataUrl === undefined
+                ? "Goal artwork (optional)"
+                : "Replace artwork"}
+            </label>
+            <input
+              accept="image/png,image/jpeg,image/webp"
+              aria-describedby={
+                iconError === undefined ? undefined : `${titleId}-artwork-error`
               }
-
-              containDialogFocus(event, panelRef.current);
-            }}
-          >
-            <h2 id={titleId}>
-              {isEdit ? "Edit saving goal" : "Create a saving goal"}
-            </h2>
-            <form noValidate onSubmit={handleSubmit}>
-              <label htmlFor={`${titleId}-name`}>Goal name</label>
-              <input
-                aria-describedby={
-                  errors.name === undefined
-                    ? undefined
-                    : `${titleId}-name-error`
-                }
-                aria-invalid={errors.name === undefined ? undefined : true}
-                id={`${titleId}-name`}
-                ref={nameRef}
-                defaultValue={goal?.name}
-                name="name"
-                type="text"
-              />
-              {errors.name === undefined ? null : (
-                <p className="field-error" id={`${titleId}-name-error`}>
-                  {errors.name}
-                </p>
-              )}
-
-              <label htmlFor={`${titleId}-target`}>Target amount</label>
-              <input
-                aria-describedby={
-                  errors.targetAmount === undefined
-                    ? undefined
-                    : `${titleId}-target-error`
-                }
-                aria-invalid={
-                  errors.targetAmount === undefined ? undefined : true
-                }
-                id={`${titleId}-target`}
-                defaultValue={
-                  goal === null
-                    ? undefined
-                    : minorUnitsToInputValue(
-                        goal.targetMinorUnits,
-                        goal.currency,
-                      )
-                }
-                inputMode="decimal"
-                name="targetAmount"
-                type="text"
-              />
-              {errors.targetAmount === undefined ? null : (
-                <p className="field-error" id={`${titleId}-target-error`}>
-                  {errors.targetAmount}
-                </p>
-              )}
-
-              <label htmlFor={`${titleId}-opening`}>Opening balance</label>
-              <input
-                aria-describedby={
-                  errors.openingBalanceAmount === undefined
-                    ? undefined
-                    : `${titleId}-opening-error`
-                }
-                aria-invalid={
-                  errors.openingBalanceAmount === undefined ? undefined : true
-                }
-                id={`${titleId}-opening`}
-                defaultValue={
-                  props.mode === "edit"
-                    ? minorUnitsToInputValue(
-                        props.openingBalanceMinorUnits,
-                        props.goal.currency,
-                      )
-                    : "0"
-                }
-                disabled={isEdit}
-                inputMode="decimal"
-                name="openingBalanceAmount"
-                type="text"
-              />
-              {errors.openingBalanceAmount === undefined ? null : (
-                <p className="field-error" id={`${titleId}-opening-error`}>
-                  {errors.openingBalanceAmount}
-                </p>
-              )}
-
-              <label htmlFor={`${titleId}-currency`}>Currency</label>
-              <input
-                aria-describedby={
-                  errors.currency === undefined
-                    ? undefined
-                    : `${titleId}-currency-error`
-                }
-                aria-invalid={errors.currency === undefined ? undefined : true}
-                id={`${titleId}-currency`}
-                defaultValue={goal?.currency ?? "USD"}
-                disabled={isEdit}
-                maxLength={3}
-                name="currency"
-                type="text"
-              />
-              {errors.currency === undefined ? null : (
-                <p className="field-error" id={`${titleId}-currency-error`}>
-                  {errors.currency}
-                </p>
-              )}
-
-              <label htmlFor={`${titleId}-threshold`}>
-                Withdrawal warning threshold (%)
-              </label>
-              <input
-                aria-describedby={
-                  errors.withdrawalWarningPercent === undefined
-                    ? undefined
-                    : `${titleId}-threshold-error`
-                }
-                aria-invalid={
-                  errors.withdrawalWarningPercent === undefined
-                    ? undefined
-                    : true
-                }
-                id={`${titleId}-threshold`}
-                defaultValue={goal?.withdrawalWarningPercent ?? 20}
-                max="100"
-                min="0"
-                name="withdrawalWarningPercent"
-                step="1"
-                type="number"
-              />
-              {errors.withdrawalWarningPercent === undefined ? null : (
-                <p className="field-error" id={`${titleId}-threshold-error`}>
-                  {errors.withdrawalWarningPercent}
-                </p>
-              )}
-
-              <div className="goal-artwork-field">
-                <label htmlFor={`${titleId}-artwork`}>
-                  {iconDataUrl === undefined
-                    ? "Goal artwork (optional)"
-                    : "Replace artwork"}
-                </label>
-                <input
-                  accept="image/png,image/jpeg,image/webp"
-                  aria-describedby={
-                    iconError === undefined
-                      ? undefined
-                      : `${titleId}-artwork-error`
-                  }
-                  aria-invalid={iconError === undefined ? undefined : true}
-                  id={`${titleId}-artwork`}
-                  name="artwork"
-                  type="file"
-                  onChange={(event) => void handleArtworkSelection(event)}
-                  onClick={(event) => {
-                    event.currentTarget.value = "";
-                  }}
-                />
-                {iconError === undefined ? null : (
-                  <p className="field-error" id={`${titleId}-artwork-error`}>
-                    {iconError}
-                  </p>
-                )}
-                {isProcessingArtwork ? (
-                  <p className="goal-artwork-field__status" role="status">
-                    Processing artwork...
-                  </p>
-                ) : null}
-                {iconDataUrl === undefined ? null : (
-                  <div className="goal-artwork-preview">
-                    <img alt="Goal artwork preview" src={iconDataUrl} />
-                    <button
-                      className="button button--quiet"
-                      type="button"
-                      onClick={() => {
-                        cancelPendingUpload();
-                        setIsProcessingArtwork(false);
-                        setIconError(undefined);
-                        setIconDataUrl(undefined);
-                      }}
-                    >
-                      <Trash2 aria-hidden="true" size={17} strokeWidth={1.8} />
-                      Remove artwork
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="dialog-actions">
+              aria-invalid={iconError === undefined ? undefined : true}
+              id={`${titleId}-artwork`}
+              name="artwork"
+              type="file"
+              onChange={(event) => void handleArtworkSelection(event)}
+              onClick={(event) => {
+                event.currentTarget.value = "";
+              }}
+            />
+            {iconError === undefined ? null : (
+              <p className="field-error" id={`${titleId}-artwork-error`}>
+                {iconError}
+              </p>
+            )}
+            {isProcessingArtwork ? (
+              <p className="goal-artwork-field__status" role="status">
+                Processing artwork...
+              </p>
+            ) : null}
+            {iconDataUrl === undefined ? null : (
+              <div className="goal-artwork-preview">
+                <img alt="Goal artwork preview" src={iconDataUrl} />
                 <button
                   className="button button--quiet"
                   type="button"
-                  onClick={closeDialog}
+                  onClick={() => {
+                    cancelPendingUpload();
+                    setIsProcessingArtwork(false);
+                    setIconError(undefined);
+                    setIconDataUrl(undefined);
+                  }}
                 >
-                  Cancel
-                </button>
-                <button
-                  className="button button--primary"
-                  disabled={isProcessingArtwork}
-                  type="submit"
-                >
-                  {isEdit ? "Save changes" : "Create goal"}
+                  <Trash2 aria-hidden="true" size={17} strokeWidth={1.8} />
+                  Remove artwork
                 </button>
               </div>
-            </form>
-          </section>
-        </div>
-      ) : null}
+            )}
+          </div>
+
+          <div className="dialog-actions">
+            <button
+              className="button button--quiet"
+              type="button"
+              onClick={closeDialog}
+            >
+              Cancel
+            </button>
+            <button
+              className="button button--primary"
+              disabled={isProcessingArtwork}
+              type="submit"
+            >
+              {isEdit ? "Save changes" : "Create goal"}
+            </button>
+          </div>
+        </form>
+      </DialogSurface>
     </>
   );
 }

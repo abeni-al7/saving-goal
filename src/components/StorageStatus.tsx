@@ -1,6 +1,7 @@
 import { AlertTriangle, DatabaseZap } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import type { StorageStatus as StorageStatusValue } from "../state/savings-reducer";
+import { DialogSurface } from "./DialogSurface";
 import { containDialogFocus } from "./dialog-focus";
 
 interface StorageStatusProps {
@@ -21,6 +22,7 @@ export function StorageStatus({
   const cancelRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const statusRef = useRef<HTMLElement>(null);
+  const resetExitActionRef = useRef<"cancel" | "confirm" | null>(null);
 
   useEffect(() => {
     if (isResetOpen) {
@@ -33,18 +35,13 @@ export function StorageStatus({
   }
 
   function closeResetDialog(): void {
+    resetExitActionRef.current = "cancel";
     setIsResetOpen(false);
-    queueMicrotask(() => resetTriggerRef.current?.focus());
   }
 
   function confirmReset(): void {
-    if (onResetSavedData()) {
-      setIsResetOpen(false);
-      return;
-    }
-
+    resetExitActionRef.current = "confirm";
     setIsResetOpen(false);
-    queueMicrotask(() => statusRef.current?.focus());
   }
 
   if (status.kind === "session-only") {
@@ -106,49 +103,53 @@ export function StorageStatus({
         </div>
       </aside>
 
-      {isResetOpen ? (
-        <div className="dialog-backdrop" role="presentation">
-          <section
-            aria-describedby={resetDescriptionId}
-            aria-labelledby={resetTitleId}
-            aria-modal="true"
-            className="dialog-panel dialog-panel--danger"
-            ref={panelRef}
-            role="dialog"
-            onKeyDown={(event) => {
-              if (event.key === "Escape") {
-                closeResetDialog();
-                return;
-              }
+      <DialogSurface
+        describedBy={resetDescriptionId}
+        isOpen={isResetOpen}
+        labelledBy={resetTitleId}
+        panelClassName="dialog-panel--danger"
+        panelRef={panelRef}
+        onExitComplete={() => {
+          const action = resetExitActionRef.current;
+          resetExitActionRef.current = null;
+          if (action === "cancel") {
+            resetTriggerRef.current?.focus();
+          } else if (action === "confirm" && !onResetSavedData()) {
+            queueMicrotask(() => statusRef.current?.focus());
+          }
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            closeResetDialog();
+            return;
+          }
 
-              containDialogFocus(event, panelRef.current);
-            }}
+          containDialogFocus(event, panelRef.current);
+        }}
+      >
+        <h2 id={resetTitleId}>Reset saved data?</h2>
+        <p id={resetDescriptionId}>
+          This permanently removes the saved value from this browser. This
+          action cannot be undone.
+        </p>
+        <div className="dialog-actions">
+          <button
+            className="button button--quiet"
+            ref={cancelRef}
+            type="button"
+            onClick={closeResetDialog}
           >
-            <h2 id={resetTitleId}>Reset saved data?</h2>
-            <p id={resetDescriptionId}>
-              This permanently removes the saved value from this browser. This
-              action cannot be undone.
-            </p>
-            <div className="dialog-actions">
-              <button
-                className="button button--quiet"
-                ref={cancelRef}
-                type="button"
-                onClick={closeResetDialog}
-              >
-                Cancel
-              </button>
-              <button
-                className="button button--danger"
-                type="button"
-                onClick={confirmReset}
-              >
-                Reset permanently
-              </button>
-            </div>
-          </section>
+            Cancel
+          </button>
+          <button
+            className="button button--danger"
+            type="button"
+            onClick={confirmReset}
+          >
+            Reset permanently
+          </button>
         </div>
-      ) : null}
+      </DialogSurface>
     </>
   );
 }

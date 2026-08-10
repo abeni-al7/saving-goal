@@ -1,4 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitForElementToBeRemoved,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { createGoal } from "../domain/goals";
@@ -40,10 +44,11 @@ describe("DeleteGoalDialog", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cancel" })).toHaveFocus();
 
+    const dialog = screen.getByRole("dialog");
     await user.click(screen.getByRole("button", { name: "Cancel" }));
 
     expect(onConfirm).not.toHaveBeenCalled();
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitForElementToBeRemoved(dialog);
     expect(trigger).toHaveFocus();
   });
 
@@ -80,7 +85,9 @@ describe("DeleteGoalDialog", () => {
       screen.getByRole("button", { name: "Delete permanently" }),
     );
 
+    const dialog = screen.getByRole("dialog");
+    expect(state.savings.goals).toHaveLength(1);
+    await waitForElementToBeRemoved(dialog);
     expect(state.savings).toEqual({ goals: [], transactions: [] });
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });

@@ -1,4 +1,9 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitFor,
+  waitForElementToBeRemoved,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { normalizeGoalIcon } from "../browser/goal-icon-upload";
@@ -30,9 +35,14 @@ describe("GoalFormDialog", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Goal name" })).toHaveFocus();
 
+    const dialog = screen.getByRole("dialog", {
+      name: "Create a saving goal",
+    });
     await user.click(screen.getByRole("button", { name: "Cancel" }));
 
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(dialog).toBeInTheDocument();
+    expect(trigger).not.toHaveFocus();
+    await waitForElementToBeRemoved(dialog);
     expect(trigger).toHaveFocus();
   });
 
@@ -99,6 +109,7 @@ describe("GoalFormDialog", () => {
     await user.type(target, "125.00");
     await user.clear(threshold);
     await user.type(threshold, "15");
+    const dialog = screen.getByRole("dialog");
     await user.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(onSubmit).toHaveBeenCalledWith({
@@ -107,7 +118,7 @@ describe("GoalFormDialog", () => {
       withdrawalWarningPercent: 15,
       artwork: { type: "preserve" },
     });
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitForElementToBeRemoved(dialog);
   });
 
   it("contains keyboard focus within the open dialog", async () => {
@@ -300,7 +311,9 @@ describe("GoalFormDialog", () => {
       new File(["image"], "goal.png", { type: "image/png" }),
     );
     await screen.findByRole("img", { name: "Goal artwork preview" });
+    const dialog = screen.getByRole("dialog");
     await user.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitForElementToBeRemoved(dialog);
     await user.click(screen.getByRole("button", { name: "Add goal" }));
 
     expect(

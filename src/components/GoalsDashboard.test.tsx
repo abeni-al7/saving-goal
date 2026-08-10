@@ -1,4 +1,9 @@
-import { render, screen, within } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitForElementToBeRemoved,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useReducer, useState } from "react";
 import { describe, expect, it } from "vitest";
@@ -124,7 +129,9 @@ describe("GoalsDashboard", () => {
     const name = screen.getByRole("textbox", { name: "Goal name" });
     await user.clear(name);
     await user.type(name, "Safety net");
+    const editDialog = screen.getByRole("dialog");
     await user.click(screen.getByRole("button", { name: "Save changes" }));
+    await waitForElementToBeRemoved(editDialog);
 
     expect(
       screen.getByRole("heading", { name: "Safety net" }),
@@ -132,9 +139,11 @@ describe("GoalsDashboard", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Safety net updated.");
 
     await user.click(screen.getByRole("button", { name: "Delete Safety net" }));
+    const deleteDialog = screen.getByRole("dialog");
     await user.click(
       screen.getByRole("button", { name: "Delete permanently" }),
     );
+    await waitForElementToBeRemoved(deleteDialog);
 
     expect(
       screen.queryByRole("heading", { name: "Safety net" }),
@@ -160,7 +169,9 @@ describe("GoalsDashboard", () => {
       screen.getByRole("textbox", { name: "Reason (optional)" }),
       "  Prescription refill  ",
     );
+    const transactionDialog = screen.getByRole("dialog");
     await user.click(screen.getByRole("button", { name: "Record withdrawal" }));
+    await waitForElementToBeRemoved(transactionDialog);
 
     expect(
       screen.queryByRole("dialog", { name: "Confirm large withdrawal" }),
@@ -198,7 +209,7 @@ describe("GoalsDashboard", () => {
     await user.click(screen.getByRole("button", { name: "Record withdrawal" }));
 
     expect(
-      screen.getByRole("dialog", { name: "Confirm large withdrawal" }),
+      await screen.findByRole("dialog", { name: "Confirm large withdrawal" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Keep savings" })).toHaveFocus();
     expect(screen.getByText("Roof repair")).toBeInTheDocument();
@@ -207,10 +218,9 @@ describe("GoalsDashboard", () => {
       within(activity()).queryByText("Roof repair"),
     ).not.toBeInTheDocument();
 
+    const cancellationDialog = screen.getByRole("dialog");
     await user.click(screen.getByRole("button", { name: "Keep savings" }));
-    expect(
-      screen.queryByRole("dialog", { name: "Confirm large withdrawal" }),
-    ).not.toBeInTheDocument();
+    await waitForElementToBeRemoved(cancellationDialog);
     expect(within(activity()).getAllByRole("listitem")).toHaveLength(1);
     expect(screen.getByRole("status")).toBeEmptyDOMElement();
     expect(transactionTrigger).toHaveFocus();
@@ -223,9 +233,13 @@ describe("GoalsDashboard", () => {
       "Roof repair",
     );
     await user.click(screen.getByRole("button", { name: "Record withdrawal" }));
+    const confirmationDialog = await screen.findByRole("dialog", {
+      name: "Confirm large withdrawal",
+    });
     await user.click(
       screen.getByRole("button", { name: "Confirm withdrawal" }),
     );
+    await waitForElementToBeRemoved(confirmationDialog);
 
     expect(within(activity()).getAllByRole("listitem")).toHaveLength(2);
     expect(within(activity()).getByText("-$20.00")).toBeInTheDocument();
@@ -234,6 +248,33 @@ describe("GoalsDashboard", () => {
       "$20.00 withdrawn from Emergency fund.",
     );
     expect(transactionTrigger).toHaveFocus();
+  });
+
+  it("waits for the transaction dialog to exit before showing a warning", async () => {
+    const user = userEvent.setup();
+    render(<DashboardHarness initialSavings={savingsWithGoals()} />);
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Add transaction for Emergency fund",
+      }),
+    );
+    await user.click(screen.getByRole("button", { name: "Withdrawal" }));
+    await user.type(screen.getByRole("textbox", { name: "Amount" }), "20");
+    const transactionDialog = screen.getByRole("dialog", {
+      name: "Add transaction",
+    });
+
+    await user.click(screen.getByRole("button", { name: "Record withdrawal" }));
+
+    expect(transactionDialog).toBeInTheDocument();
+    expect(
+      screen.queryByRole("dialog", { name: "Confirm large withdrawal" }),
+    ).not.toBeInTheDocument();
+    await waitForElementToBeRemoved(transactionDialog);
+    expect(
+      await screen.findByRole("dialog", { name: "Confirm large withdrawal" }),
+    ).toBeInTheDocument();
   });
 
   it("cancels a warned withdrawal with Escape and restores focus", async () => {
@@ -251,11 +292,12 @@ describe("GoalsDashboard", () => {
     await user.click(screen.getByRole("button", { name: "Withdrawal" }));
     await user.type(screen.getByRole("textbox", { name: "Amount" }), "20");
     await user.click(screen.getByRole("button", { name: "Record withdrawal" }));
+    const warningDialog = await screen.findByRole("dialog", {
+      name: "Confirm large withdrawal",
+    });
     await user.keyboard("{Escape}");
 
-    expect(
-      screen.queryByRole("dialog", { name: "Confirm large withdrawal" }),
-    ).not.toBeInTheDocument();
+    await waitForElementToBeRemoved(warningDialog);
     expect(transactionTrigger).toHaveFocus();
     expect(
       within(

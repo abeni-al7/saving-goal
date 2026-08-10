@@ -26,6 +26,7 @@ export function GoalsDashboard({
   dispatch,
 }: GoalsDashboardProps) {
   const [announcement, setAnnouncement] = useState("");
+  const [isWarningReady, setIsWarningReady] = useState(false);
   const transactionReturnFocusRef = useRef<HTMLButtonElement>(null);
   const completedCount = savings.goals.filter(
     (goal) => goal.completedAt !== undefined,
@@ -118,8 +119,10 @@ export function GoalsDashboard({
                 onRecordTransaction={(mode, amountMinorUnits, reason) =>
                   recordTransaction(goal, mode, amountMinorUnits, reason)
                 }
+                onTransactionConfirmationReady={() => setIsWarningReady(true)}
                 onTransactionOpen={(trigger) => {
                   transactionReturnFocusRef.current = trigger;
+                  setIsWarningReady(false);
                 }}
               />
             ))}
@@ -136,7 +139,9 @@ export function GoalsDashboard({
         {announcement}
       </p>
 
-      {pendingWithdrawal === null || pendingGoal === undefined ? null : (
+      {pendingWithdrawal === null ||
+      pendingGoal === undefined ||
+      !isWarningReady ? null : (
         <WithdrawalWarningDialog
           amountMinorUnits={pendingWithdrawal.amountMinorUnits}
           goal={pendingGoal}
@@ -146,10 +151,12 @@ export function GoalsDashboard({
             pendingWithdrawal.projectedBalanceMinorUnits
           }
           onCancel={() => {
+            setIsWarningReady(false);
             dispatch({ type: "withdrawal/cancel" });
             restoreTransactionFocus();
           }}
           onConfirm={() => {
+            setIsWarningReady(false);
             dispatch({ type: "withdrawal/confirm" });
             setAnnouncement(
               withdrawalAnnouncement(

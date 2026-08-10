@@ -22,6 +22,9 @@
   --breakpoint-small: 30rem;
   --breakpoint-medium: 48rem;
   --breakpoint-large: 72rem;
+  --dialog-motion-duration: 160ms;
+  --dialog-panel-travel: 0.625rem;
+  --dialog-panel-max-width: 34rem;
   color: var(--color-ink);
   background: var(--color-canvas);
   font-family: "IBM Plex Sans", sans-serif;
@@ -682,18 +685,21 @@ main {
   z-index: 10;
   inset: 0;
   display: grid;
-  place-items: center;
-  padding: var(--space-4);
+  align-items: end;
   background: rgb(34 35 31 / 72%);
 }
 
 .dialog-panel {
-  width: min(100%, 34rem);
-  max-height: calc(100vh - 2rem);
+  width: 100%;
+  max-height: 100dvh;
   overflow-y: auto;
-  padding: var(--space-6);
+  overscroll-behavior: contain;
+  padding: var(--space-6) max(var(--space-6), env(safe-area-inset-right))
+    max(var(--space-6), env(safe-area-inset-bottom))
+    max(var(--space-6), env(safe-area-inset-left));
   border: 1px solid var(--color-ink);
-  border-radius: 8px;
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
   background: var(--color-surface);
 }
 
@@ -866,6 +872,19 @@ main {
 
   .goal-card__activity h4 {
     margin: 0;
+  }
+
+  .dialog-backdrop {
+    place-items: center;
+    padding: var(--space-4);
+  }
+
+  .dialog-panel {
+    width: min(100%, var(--dialog-panel-max-width));
+    max-height: calc(100dvh - 2rem);
+    padding: var(--space-6);
+    border-bottom: 1px solid var(--color-ink);
+    border-radius: 8px;
   }
 }
 

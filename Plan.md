@@ -473,25 +473,25 @@ Every implementation session must:
 
 **Outcome:** Every modal uses one accessible, restrained entrance and exit language, appearing as a safe-area-aware bottom sheet on phones and the existing centered panel on larger viewports.
 
-- [ ] Write focused failing tests for a shared dialog surface that prove open and closed rendering, accessible dialog attributes, exit completion, and immediate reduced-motion state.
-- [ ] Create `src/components/DialogSurface.tsx` using the existing `motion/react` dependency and `AnimatePresence`; centralize backdrop and panel variants with a short opacity transition and approximately 8-12px of calm vertical travel.
-- [ ] Keep focus ownership explicit in callers: the shared surface handles visual presence and exit completion, while each dialog retains its current accessible name, initial-focus target, focus containment, Escape behavior, and key handler.
-- [ ] Migrate `GoalFormDialog.tsx` and `TransactionDialog.tsx` to the shared surface, preserving validation, form reset, upload cancellation, amount focus, and trigger-focus restoration.
-- [ ] Migrate `DeleteGoalDialog.tsx`, `WithdrawalWarningDialog.tsx`, and the reset confirmation in `StorageStatus.tsx`, preserving safe initial focus and destructive confirmation semantics.
-- [ ] Defer trigger-focus restoration until exit completion so focus never moves behind a still-visible surface; continue skipping stale-trigger restoration when a destructive action removes its trigger.
-- [ ] Coordinate `GoalsDashboard.tsx` warning cancellation and confirmation with controlled exit completion before returning focus to the originating transaction control, without changing pending-withdrawal reducer behavior or creating two interactive `aria-modal` surfaces.
-- [ ] Add dialog motion and placement tokens to `src/styles/global.css` without changing the current palette, typography, backdrop strength, or desktop width.
-- [ ] Below the existing 48rem breakpoint, align the backdrop to the bottom and make the panel a full-width, `100dvh`-bounded, safe-area-aware sheet with only its top corners rounded and internally reachable overflow.
-- [ ] At 48rem and above, preserve the centered panel with its existing maximum 34rem width and bounded vertical scrolling.
-- [ ] Add regression tests for focus wrapping, Escape, cancellation, submission, warning confirmation, permanent deletion, reset confirmation, and trigger-focus restoration after animated exits.
+- [x] Write focused failing tests for a shared dialog surface that prove open and closed rendering, accessible dialog attributes, exit completion, and immediate reduced-motion state.
+- [x] Create `src/components/DialogSurface.tsx` using the existing `motion/react` dependency and `AnimatePresence`; centralize backdrop and panel variants with a short opacity transition and approximately 8-12px of calm vertical travel.
+- [x] Keep focus ownership explicit in callers: the shared surface handles visual presence and exit completion, while each dialog retains its current accessible name, initial-focus target, focus containment, Escape behavior, and key handler.
+- [x] Migrate `GoalFormDialog.tsx` and `TransactionDialog.tsx` to the shared surface, preserving validation, form reset, upload cancellation, amount focus, and trigger-focus restoration.
+- [x] Migrate `DeleteGoalDialog.tsx`, `WithdrawalWarningDialog.tsx`, and the reset confirmation in `StorageStatus.tsx`, preserving safe initial focus and destructive confirmation semantics.
+- [x] Defer trigger-focus restoration until exit completion so focus never moves behind a still-visible surface; continue skipping stale-trigger restoration when a destructive action removes its trigger.
+- [x] Coordinate `GoalsDashboard.tsx` warning cancellation and confirmation with controlled exit completion before returning focus to the originating transaction control, without changing pending-withdrawal reducer behavior or creating two interactive `aria-modal` surfaces.
+- [x] Add dialog motion and placement tokens to `src/styles/global.css` without changing the current palette, typography, backdrop strength, or desktop width.
+- [x] Below the existing 48rem breakpoint, align the backdrop to the bottom and make the panel a full-width, `100dvh`-bounded, safe-area-aware sheet with only its top corners rounded and internally reachable overflow.
+- [x] At 48rem and above, preserve the centered panel with its existing maximum 34rem width and bounded vertical scrolling.
+- [x] Add regression tests for focus wrapping, Escape, cancellation, submission, warning confirmation, permanent deletion, reset confirmation, and trigger-focus restoration after animated exits.
 
 **Validation**
 
-- [ ] `npm test -- --run src/components/GoalFormDialog.test.tsx src/components/TransactionDialog.test.tsx src/components/DeleteGoalDialog.test.tsx src/components/WithdrawalWarningDialog.test.tsx src/components/StorageStatus.test.tsx src/components/GoalsDashboard.test.tsx`
-- [ ] `npm run format:check`
-- [ ] `npm run typecheck`
-- [ ] `npm run lint`
-- [ ] Workspace diagnostics report no relevant errors.
+- [x] `npm test -- --run src/components/GoalFormDialog.test.tsx src/components/TransactionDialog.test.tsx src/components/DeleteGoalDialog.test.tsx src/components/WithdrawalWarningDialog.test.tsx src/components/StorageStatus.test.tsx src/components/GoalsDashboard.test.tsx`
+- [x] `npm run format:check`
+- [x] `npm run typecheck`
+- [x] `npm run lint`
+- [x] Workspace diagnostics report no relevant errors.
 
 **Handoff:** Record the shared surface contract, responsive placement rules, exit-focus timing, warned-withdrawal layering, and focused test results in the Session Log.
 
@@ -566,6 +566,13 @@ Every implementation session must:
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
+
+### 2026-08-10 - Session 15: Shared Responsive Dialog Motion
+
+- Completed: Added one `AnimatePresence`-backed dialog surface with shared backdrop and panel variants, a 160ms opacity transition, 10px vertical travel, reduced-motion final states, caller-owned accessible naming and key handling, and exit completion callbacks. Migrated goal, transaction, delete, withdrawal-warning, and storage-reset dialogs; deferred trigger focus and destructive callbacks until exits complete; and sequenced warned withdrawals so the transaction surface exits before the warning mounts.
+- Validation: The shared-surface contract suite and six focused dialog suites passed 38 tests total; the exact Session 15 command passed 35 tests; `npm run format:check`, `npm run typecheck`, `npm run lint`, and `git diff --check` passed; workspace diagnostics were clean. Red tests first failed on immediate unmount, immediate focus restoration, immediate destructive callbacks, and simultaneous warning handoff.
+- Decisions or deviations: Dialog callers retain initial focus, focus containment, Escape, validation, form reset, upload cancellation, and semantic ownership. Destructive goal deletion intentionally skips restoring a trigger that is removed. Mobile panels are full-width bottom sheets bounded by `100dvh`, padded for safe areas, scrollable, and rounded only at the top; layouts at 48rem and wider retain the centered 34rem panel and existing backdrop strength.
+- Next unchecked task: Session 16 - add local interaction feedback, conditional form-region motion, artwork processing feedback, and stable control states.
 
 ### 2026-08-10 - Session 14: Activity Disclosure And Goal Actions
 

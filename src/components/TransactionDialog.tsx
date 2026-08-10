@@ -7,6 +7,7 @@ import {
   projectTransactionBalance,
 } from "../domain/transactions";
 import type { Goal } from "../domain/types";
+import { DialogSurface } from "./DialogSurface";
 import { containDialogFocus } from "./dialog-focus";
 
 export type TransactionMode = "deposit" | "withdrawal";
@@ -15,6 +16,7 @@ interface TransactionDialogProps {
   readonly goal: Goal;
   readonly currentBalanceMinorUnits: number;
   readonly onOpen?: (trigger: HTMLButtonElement) => void;
+  readonly onConfirmationReady?: () => void;
   readonly onSubmit: (
     mode: TransactionMode,
     amountMinorUnits: number,
@@ -26,6 +28,7 @@ export function TransactionDialog({
   goal,
   currentBalanceMinorUnits,
   onOpen,
+  onConfirmationReady,
   onSubmit,
 }: TransactionDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,6 +40,7 @@ export function TransactionDialog({
   const amountId = useId();
   const reasonId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const restoreFocusAfterExitRef = useRef(true);
   const amountRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLElement>(null);
 
@@ -68,10 +72,8 @@ export function TransactionDialog({
         : undefined);
 
   function closeDialog(restoreFocus = true): void {
+    restoreFocusAfterExitRef.current = restoreFocus;
     setIsOpen(false);
-    if (restoreFocus) {
-      queueMicrotask(() => triggerRef.current?.focus());
-    }
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
@@ -112,122 +114,120 @@ export function TransactionDialog({
         <span>Add transaction</span>
       </button>
 
-      {isOpen ? (
-        <div className="dialog-backdrop" role="presentation">
-          <section
-            aria-labelledby={titleId}
-            aria-modal="true"
-            className="dialog-panel"
-            ref={panelRef}
-            role="dialog"
-            onKeyDown={(event) => {
-              if (event.key === "Escape") {
-                closeDialog();
-                return;
-              }
+      <DialogSurface
+        isOpen={isOpen}
+        labelledBy={titleId}
+        panelRef={panelRef}
+        onExitComplete={() => {
+          if (restoreFocusAfterExitRef.current) {
+            triggerRef.current?.focus();
+          } else {
+            onConfirmationReady?.();
+          }
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            closeDialog();
+            return;
+          }
 
-              containDialogFocus(event, panelRef.current);
+          containDialogFocus(event, panelRef.current);
+        }}
+      >
+        <h2 id={titleId}>Add transaction</h2>
+        <form noValidate onSubmit={handleSubmit}>
+          <div aria-label="Transaction type" className="segmented-control">
+            <button
+              aria-pressed={mode === "deposit"}
+              className="button"
+              type="button"
+              onClick={() => {
+                setMode("deposit");
+                setError(undefined);
+              }}
+            >
+              Deposit
+            </button>
+            <button
+              aria-pressed={mode === "withdrawal"}
+              className="button"
+              type="button"
+              onClick={() => {
+                setMode("withdrawal");
+                setError(undefined);
+              }}
+            >
+              Withdrawal
+            </button>
+          </div>
+
+          <label htmlFor={amountId}>Amount</label>
+          <input
+            aria-describedby={
+              displayedError === undefined ? undefined : `${amountId}-error`
+            }
+            aria-invalid={displayedError === undefined ? undefined : true}
+            id={amountId}
+            inputMode="decimal"
+            name="amount"
+            ref={amountRef}
+            type="text"
+            value={amount}
+            onChange={(event) => {
+              setAmount(event.currentTarget.value);
+              setError(undefined);
             }}
-          >
-            <h2 id={titleId}>Add transaction</h2>
-            <form noValidate onSubmit={handleSubmit}>
-              <div aria-label="Transaction type" className="segmented-control">
-                <button
-                  aria-pressed={mode === "deposit"}
-                  className="button"
-                  type="button"
-                  onClick={() => {
-                    setMode("deposit");
-                    setError(undefined);
-                  }}
-                >
-                  Deposit
-                </button>
-                <button
-                  aria-pressed={mode === "withdrawal"}
-                  className="button"
-                  type="button"
-                  onClick={() => {
-                    setMode("withdrawal");
-                    setError(undefined);
-                  }}
-                >
-                  Withdrawal
-                </button>
-              </div>
+          />
+          {displayedError === undefined ? null : (
+            <p className="field-error" id={`${amountId}-error`}>
+              {displayedError}
+            </p>
+          )}
 
-              <label htmlFor={amountId}>Amount</label>
-              <input
-                aria-describedby={
-                  displayedError === undefined ? undefined : `${amountId}-error`
-                }
-                aria-invalid={displayedError === undefined ? undefined : true}
-                id={amountId}
-                inputMode="decimal"
-                name="amount"
-                ref={amountRef}
-                type="text"
-                value={amount}
-                onChange={(event) => {
-                  setAmount(event.currentTarget.value);
-                  setError(undefined);
-                }}
+          {mode === "withdrawal" ? (
+            <>
+              <label htmlFor={reasonId}>Reason (optional)</label>
+              <textarea
+                id={reasonId}
+                maxLength={MAX_WITHDRAWAL_REASON_LENGTH}
+                name="reason"
+                rows={3}
+                value={reason}
+                onChange={(event) => setReason(event.currentTarget.value)}
               />
-              {displayedError === undefined ? null : (
-                <p className="field-error" id={`${amountId}-error`}>
-                  {displayedError}
-                </p>
-              )}
+            </>
+          ) : null}
 
-              {mode === "withdrawal" ? (
-                <>
-                  <label htmlFor={reasonId}>Reason (optional)</label>
-                  <textarea
-                    id={reasonId}
-                    maxLength={MAX_WITHDRAWAL_REASON_LENGTH}
-                    name="reason"
-                    rows={3}
-                    value={reason}
-                    onChange={(event) => setReason(event.currentTarget.value)}
-                  />
-                </>
-              ) : null}
-
-              {projectedBalanceMinorUnits === undefined ||
-              projectedProgress === undefined ? null : (
-                <dl className="transaction-preview" aria-live="polite">
-                  <div>
-                    <dt>Projected balance</dt>
-                    <dd>
-                      {formatMinorUnits(
-                        projectedBalanceMinorUnits,
-                        goal.currency,
-                      )}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Projected progress</dt>
-                    <dd>{projectedProgress.percentage}%</dd>
-                  </div>
-                </dl>
-              )}
-
-              <div className="dialog-actions">
-                <button
-                  className="button button--quiet"
-                  type="button"
-                  onClick={() => closeDialog()}
-                >
-                  Cancel
-                </button>
-                <button className="button button--primary" type="submit">
-                  Record {mode}
-                </button>
+          {projectedBalanceMinorUnits === undefined ||
+          projectedProgress === undefined ? null : (
+            <dl className="transaction-preview" aria-live="polite">
+              <div>
+                <dt>Projected balance</dt>
+                <dd>
+                  {formatMinorUnits(projectedBalanceMinorUnits, goal.currency)}
+                </dd>
               </div>
-            </form>
-          </section>
-        </div>
-      ) : null}
+              <div>
+                <dt>Projected progress</dt>
+                <dd>{projectedProgress.percentage}%</dd>
+              </div>
+            </dl>
+          )}
+
+          <div className="dialog-actions">
+            <button
+              className="button button--quiet"
+              type="button"
+              onClick={() => closeDialog()}
+            >
+              Cancel
+            </button>
+            <button className="button button--primary" type="submit">
+              Record {mode}
+            </button>
+          </div>
+        </form>
+      </DialogSurface>
     </>
   );
 }

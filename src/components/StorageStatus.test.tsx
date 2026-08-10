@@ -1,4 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitForElementToBeRemoved,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -84,9 +88,11 @@ describe("StorageStatus", () => {
     const cancelButton = screen.getByRole("button", { name: "Cancel" });
     expect(cancelButton).toHaveFocus();
 
+    const dialog = screen.getByRole("dialog");
     await user.click(cancelButton);
 
     expect(onResetSavedData).not.toHaveBeenCalled();
+    await waitForElementToBeRemoved(dialog);
     expect(resetTrigger).toHaveFocus();
   });
 
@@ -107,8 +113,12 @@ describe("StorageStatus", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "Reset saved data" }));
+    const dialog = screen.getByRole("dialog");
     await user.click(screen.getByRole("button", { name: "Reset permanently" }));
 
+    expect(dialog).toBeInTheDocument();
+    expect(onResetSavedData).not.toHaveBeenCalled();
+    await waitForElementToBeRemoved(dialog);
     expect(onResetSavedData).toHaveBeenCalledOnce();
   });
 
@@ -139,9 +149,10 @@ describe("StorageStatus", () => {
 
     render(<ResetFailureHarness />);
     await user.click(screen.getByRole("button", { name: "Reset saved data" }));
+    const dialog = screen.getByRole("dialog");
     await user.click(screen.getByRole("button", { name: "Reset permanently" }));
 
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitForElementToBeRemoved(dialog);
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Saved data could not be reset.",
     );

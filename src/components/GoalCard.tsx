@@ -20,6 +20,7 @@ interface GoalCardProps {
     amountMinorUnits: number,
     reason?: string,
   ) => "confirmation-required" | void;
+  readonly onTransactionConfirmationReady?: () => void;
   readonly onTransactionOpen: (trigger: HTMLButtonElement) => void;
 }
 
@@ -29,6 +30,7 @@ export function GoalCard({
   onDelete,
   onEdit,
   onRecordTransaction,
+  onTransactionConfirmationReady,
   onTransactionOpen,
 }: GoalCardProps) {
   const titleId = useId();
@@ -85,6 +87,7 @@ export function GoalCard({
         <TransactionDialog
           currentBalanceMinorUnits={balanceMinorUnits}
           goal={goal}
+          onConfirmationReady={onTransactionConfirmationReady}
           onOpen={onTransactionOpen}
           onSubmit={onRecordTransaction}
         />

@@ -1,4 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitForElementToBeRemoved,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { createGoal } from "../domain/goals";
@@ -132,7 +136,9 @@ describe("TransactionDialog", () => {
       screen.getByRole("textbox", { name: "Reason (optional)" }),
       "Temporary reason",
     );
+    const dialog = screen.getByRole("dialog");
     await user.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitForElementToBeRemoved(dialog);
     await user.click(trigger);
     expect(screen.getByRole("textbox", { name: "Amount" })).toHaveFocus();
     await user.click(screen.getByRole("button", { name: "Withdrawal" }));
