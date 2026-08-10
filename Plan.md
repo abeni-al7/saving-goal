@@ -35,6 +35,11 @@ Every implementation session must:
 - [x] Allow a warned withdrawal after explicit confirmation, but never allow an overdraft.
 - [x] Keep completed goals active, display percentages above 100%, and celebrate first completion once.
 - [x] Exclude authentication, cloud sync, conversion, target dates, recurring deposits, archives, transaction editing, import/export, and notes from the MVP.
+- [x] Treat withdrawal reasons as optional, immutable withdrawal-only metadata limited to 160 trimmed characters.
+- [x] Let users add, replace, and remove goal artwork during goal creation and editing.
+- [x] Accept PNG, JPEG, and WebP artwork sources up to 2 MB, then normalize them locally to PNG with a longest side of 128px and a maximum encoded payload of 100 KB.
+- [x] Store only normalized goal artwork in the versioned localStorage envelope; do not upload it or introduce a network dependency.
+- [x] Migrate valid version-one data to a strict version-two envelope while preserving the existing recovery behavior for invalid and unknown data.
 
 ## Acceptance Criteria
 
@@ -48,6 +53,13 @@ Every implementation session must:
 - [x] Goal deletion names the goal, warns about history loss, and cascades only after confirmation.
 - [x] Valid data survives refreshes; corrupt or unavailable storage is not silently overwritten.
 - [x] Primary workflows work on mobile and desktop with keyboard navigation and reduced motion.
+- [ ] A user can optionally add a withdrawal reason; blank reasons are omitted and nonblank reasons are trimmed and limited to 160 characters.
+- [ ] An ordinary or warned withdrawal preserves its reason in exactly one immutable ledger record and displays it with the matching activity entry.
+- [ ] Deposits and opening balances cannot receive withdrawal-reason metadata.
+- [ ] A user can add goal artwork while creating a goal and replace or remove it while editing without canceled changes leaking into saved state.
+- [ ] Goal artwork accepts decoded PNG, JPEG, and WebP sources no larger than 2 MB, preserves aspect ratio without cropping, and is normalized locally to a PNG no larger than 128px or 100 KB.
+- [ ] Each goal displays its artwork in a stable 56px region beside the goal name without clipping, overlap, or layout shifts on supported mobile and desktop viewports.
+- [ ] Valid version-one data migrates without user intervention, new changes persist as version two, and malformed or unsupported data remains preserved for recovery.
 
 ---
 
@@ -298,6 +310,130 @@ Every implementation session must:
 - [x] `npm run build`
 - [x] `npm run test:e2e`
 - [x] Workspace diagnostics report no relevant errors.
+
+---
+
+## Session 10: Version-Two Data Contract
+
+**Depends on:** Session 9
+
+**Outcome:** The persisted model supports optional withdrawal reasons and bounded goal artwork through a strict, backward-compatible version-two envelope.
+
+- [ ] Write failing schema tests for a valid version-two envelope containing an optional goal icon and withdrawal reason.
+- [ ] Write failing schema tests that reject blank or over-160-character reasons, reasons on opening or deposit records, malformed icon data URLs, icon payloads over 100 KB, and unknown fields.
+- [ ] Write failing migration tests proving valid version-one envelopes become version two without changing goals or transactions.
+- [ ] Preserve strict version-one validation so malformed legacy data is not accepted during migration.
+- [ ] Add optional `iconDataUrl` goal metadata and optional `reason` transaction metadata to `src/domain/types.ts`.
+- [ ] Add shared constants and pure validation helpers for normalized goal icon data URLs in `src/domain/goal-icons.ts`.
+- [ ] Implement distinct strict version-one and version-two schemas in `src/storage/schema.ts` and set the current storage version to two.
+- [ ] Implement a migration branch that validates version-one data before constructing a version-two envelope.
+- [ ] Keep malformed JSON, invalid data, and unknown future versions byte-for-byte preserved behind the existing recovery flow.
+- [ ] Update storage tests to prove saves emit version two and quota failures still retain the prior raw value.
+
+**Validation**
+
+- [ ] `npm test -- --run src/domain/goal-icons.test.ts src/storage/schema.test.ts src/storage/savings-storage.test.ts`
+- [ ] `npm run typecheck`
+- [ ] `npm run lint`
+
+**Handoff:** Record the version-two shape, migration guarantees, icon payload calculation, and recovery behavior in the Session Log.
+
+---
+
+## Session 11: Optional Withdrawal Reasons
+
+**Depends on:** Session 10
+
+**Outcome:** Users can attach a concise optional reason to a withdrawal, including withdrawals that require confirmation, and review it in immutable activity history.
+
+- [ ] Write failing transaction-domain tests for omitted, whitespace-only, trimmed, exactly 160-character, and overlength reasons.
+- [ ] Extend `RecordTransactionInput` and `recordTransaction` so only withdrawals can store a validated reason and deposits remain unchanged.
+- [ ] Write failing reducer tests proving ordinary withdrawals record a reason immediately and warned withdrawals preserve it through request, confirmation, and cancellation.
+- [ ] Extend `PendingWithdrawal`, withdrawal actions, and reducer helpers without changing amount, warning, completion, or revision semantics.
+- [ ] Write failing `TransactionDialog` tests for a withdrawal-only `Reason (optional)` field, its 160-character limit, mode switching, reset-on-open behavior, and trimmed submission.
+- [ ] Add the reason field to withdrawal mode in `src/components/TransactionDialog.tsx`; omit it from deposit submissions and preserve existing amount focus and error behavior.
+- [ ] Write failing warning-dialog and dashboard tests proving the pending reason is reviewable and reaches exactly one confirmed transaction.
+- [ ] Show the pending reason in `src/components/WithdrawalWarningDialog.tsx` and thread it through `GoalCard` and `GoalsDashboard` callbacks.
+- [ ] Write failing activity tests for present, absent, and long reasons.
+- [ ] Render withdrawal reasons beneath their matching activity metadata with wrapping styles that do not disturb amount alignment.
+- [ ] Preserve existing live announcements, trigger-focus restoration, overdraft blocking, and exact-threshold warning behavior.
+
+**Validation**
+
+- [ ] `npm test -- --run src/domain/transactions.test.ts src/state/savings-reducer.test.ts`
+- [ ] `npm test -- --run src/components/TransactionDialog.test.tsx src/components/WithdrawalWarningDialog.test.tsx src/components/ActivityList.test.tsx src/components/GoalsDashboard.test.tsx`
+- [ ] `npm run typecheck`
+- [ ] `npm run lint`
+
+**Handoff:** Record reason normalization, confirmation propagation, display behavior, and boundary cases in the Session Log.
+
+---
+
+## Session 12: Custom Goal Artwork
+
+**Depends on:** Session 10
+
+**Outcome:** Users can add, preview, replace, remove, and persist reasonably sized goal artwork without leaving the browser or destabilizing local storage.
+
+- [ ] Write failing goal-domain tests for create, preserve, replace, and remove artwork semantics.
+- [ ] Extend `CreateGoalInput` with optional artwork and `EditGoalInput` with an explicit preserve, replace, or remove contract.
+- [ ] Create `src/browser/goal-icon-upload.ts` as the browser-only boundary for source validation, image decoding, aspect-ratio fitting, canvas rendering, PNG encoding, and resource cleanup.
+- [ ] Write focused tests for accepted PNG, JPEG, and WebP sources; unsupported MIME types; sources over 2 MB; decode failures; encoding failures; stale selections; dimension fitting; and normalized results over 100 KB.
+- [ ] Preserve transparency when present, never crop or upscale the source, constrain the longest side to 128px, and persist only the normalized PNG data URL.
+- [ ] Write failing goal-dialog tests for accessible file errors, processing state, preview, create submission, replacement, removal, cancellation, and edit-state reinitialization.
+- [ ] Add an optional file input accepting PNG, JPEG, and WebP to `src/components/GoalFormDialog.tsx` and link failures through `aria-describedby` and `aria-invalid`.
+- [ ] Disable goal submission only while image processing is active and prevent an older asynchronous selection from replacing a newer one.
+- [ ] Add preview, Replace, and Remove controls using the existing dialog, button, focus, and error conventions.
+- [ ] Write failing goal-card tests for artwork presence, absence, decorative alternative text, stable dimensions, long names, and completion state.
+- [ ] Render artwork in an `alt=""`, 56px, `object-fit: contain` region beside the goal heading; show no placeholder when artwork is absent.
+- [ ] Add responsive artwork and file-control styles without shifting balance, progress, activity, or action controls.
+
+**Validation**
+
+- [ ] `npm test -- --run src/domain/goals.test.ts src/domain/goal-icons.test.ts src/browser/goal-icon-upload.test.ts`
+- [ ] `npm test -- --run src/components/GoalFormDialog.test.tsx src/components/GoalCard.test.tsx`
+- [ ] `npm run format:check`
+- [ ] `npm run typecheck`
+- [ ] `npm run lint`
+- [ ] `npm run build`
+
+**Handoff:** Record accepted formats, normalization limits, create/edit semantics, asynchronous cleanup, and responsive display behavior in the Session Log.
+
+---
+
+## Session 13: Feature Integration And Release Gate
+
+**Depends on:** Sessions 11 and 12
+
+**Outcome:** Browser coverage, accessibility checks, documentation, and the complete quality suite verify both features across persistence and responsive workflows.
+
+- [ ] Extend Playwright helpers to record optional withdrawal reasons and attach generated image buffers without committing binary fixtures.
+- [ ] Cover an ordinary withdrawal reason and a warned withdrawal reason through confirmation, reload, and exactly-one-record assertions.
+- [ ] Cover goal creation with artwork, decoded normalized dimensions and PNG type, reload persistence, replacement, and removal.
+- [ ] Cover unsupported image types and oversized source files without changing the saved goal.
+- [ ] Re-run viewport framing and horizontal-overflow assertions with a long goal name, goal artwork, and a 160-character withdrawal reason.
+- [ ] Complete a keyboard-only pass for selecting, replacing, and removing artwork and for recording ordinary and warned withdrawal reasons.
+- [ ] Inspect desktop, mobile, and reduced-motion screenshots for image clarity, stable sizing, reason wrapping, clipping, overlap, and dialog framing.
+- [ ] Update `docs/project-brief.md` and `README.md` with both features, accepted image formats and limits, schema version two, local-only image handling, and quota implications.
+- [ ] Refine the out-of-scope notes language so it excludes general transaction notes without contradicting optional withdrawal reasons.
+- [ ] Add `docs/decisions/0002-bounded-goal-icons-in-local-storage.md` documenting normalized data URLs, privacy and quota tradeoffs, rejected network storage, and the threshold for reconsidering IndexedDB.
+- [ ] Review the final diff for accidental report artifacts, raw source-image persistence, secrets, stale version-one documentation, unrelated formatting, and new network or runtime dependencies.
+- [ ] Check every new acceptance criterion against automated or documented manual evidence.
+
+**Final Validation**
+
+- [ ] `npm run format:check`
+- [ ] `npm run lint`
+- [ ] `npm run typecheck`
+- [ ] `npm run test:coverage`
+- [ ] `npm run build`
+- [ ] `npm run test:e2e`
+- [ ] Workspace diagnostics report no relevant errors.
+- [ ] Desktop screenshot inspection passed.
+- [ ] Mobile screenshot inspection passed.
+- [ ] Reduced-motion inspection passed.
+
+**Handoff:** Record complete workflow evidence, browser versions, screenshots inspected, coverage results, storage migration behavior, and any intentionally manual assertions in the Session Log.
 
 ---
 
