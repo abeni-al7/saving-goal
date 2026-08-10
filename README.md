@@ -9,15 +9,16 @@ an immutable activity history, and see progress without creating an account.
 - Multiple goals with per-goal ISO currencies and withdrawal thresholds
 - Exact minor-unit money arithmetic and localized amount formatting
 - Immutable opening, deposit, and withdrawal transactions
-- Optional trimmed withdrawal reasons retained in immutable activity history
+- Collapsible, count-labeled activity ledgers presented newest first
+- Optional trimmed withdrawal reasons visibly labeled in immutable history
 - Optional goal artwork with local preview, replacement, and removal
 - Projected transaction effects, overdraft protection, and confirmation for
   unusually large withdrawals
-- Accessible progress, first-completion feedback, dialogs, live announcements,
-  keyboard workflows, and reduced-motion support
+- Accessible progress, first-completion feedback, live announcements, keyboard
+  workflows, and reduced-motion-safe interaction feedback
 - Versioned local persistence with explicit corrupt-data and unavailable-storage
   recovery
-- Responsive desktop and mobile layouts
+- Responsive desktop dialogs and safe-area-aware mobile bottom sheets
 
 ## Prerequisites
 

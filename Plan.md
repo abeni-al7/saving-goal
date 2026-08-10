@@ -533,31 +533,31 @@ Every implementation session must:
 
 **Outcome:** Desktop, mobile, reduced-motion, keyboard, documentation, and full-suite evidence verify the complete interaction-polish release without regressions to product behavior or visual identity.
 
-- [ ] Extend `e2e/saving-goals.spec.ts` with enough transactions to prove each activity log is collapsed by default, reports its entry count, expands to every entry newest to oldest, and collapses again.
-- [ ] Assert optional withdrawal reasons retain their visible `Reason` labels, remain associated with the correct withdrawals, persist after reload, and wrap without colliding with right-aligned amounts.
-- [ ] Add responsive geometry assertions proving action controls do not wrap or overflow, expanded activity remains within the viewport, mobile sheets sit against the viewport bottom and safe area, and desktop dialogs remain centered and bounded.
-- [ ] Add reduced-motion assertions proving activity disclosure, dialog surfaces, conditional form regions, processing feedback, and control states render their immediate final state while preserving all information.
-- [ ] Complete keyboard-only create/cancel, activity expand/collapse, deposit, warned-withdrawal cancel/confirm, edit, delete, artwork, and storage-reset workflows; verify focus wrapping, Escape, and restoration after exits.
-- [ ] Capture representative dashboard, expanded-activity, transaction-sheet, warning-dialog, and artwork-processing screenshots for desktop Chromium, Pixel 7 mobile Chromium, and reduced-motion Chromium.
-- [ ] Inspect screenshots for action wrapping, clipped labels, long reason or amount collisions, sheet framing, backdrop layering, focus visibility, unstable dimensions, overlap, unintended palette/type changes, and unexpected layout shifts.
-- [ ] Update `docs/project-brief.md` current status with collapsed-by-default newest-first activity, labeled reason notes, responsive dialog placement, and reduced-motion-safe interaction feedback.
-- [ ] Update `README.md` only where the feature summary needs to mention collapsible activity and responsive mobile dialogs; do not expand product scope or alter local-data guarantees.
-- [ ] Review the final diff for duplicated dialog behavior, accidental domain or storage changes, stale generated screenshots, report artifacts, secrets, unrelated formatting, dependency churn, and stale documentation.
-- [ ] Check every Session 14-17 acceptance point against automated or documented manual evidence and add the completed Session Log entries newest first.
+- [x] Extend `e2e/saving-goals.spec.ts` with enough transactions to prove each activity log is collapsed by default, reports its entry count, expands to every entry newest to oldest, and collapses again.
+- [x] Assert optional withdrawal reasons retain their visible `Reason` labels, remain associated with the correct withdrawals, persist after reload, and wrap without colliding with right-aligned amounts.
+- [x] Add responsive geometry assertions proving action controls do not wrap or overflow, expanded activity remains within the viewport, mobile sheets sit against the viewport bottom and safe area, and desktop dialogs remain centered and bounded.
+- [x] Add reduced-motion assertions proving activity disclosure, dialog surfaces, conditional form regions, processing feedback, and control states render their immediate final state while preserving all information.
+- [x] Complete keyboard-only create/cancel, activity expand/collapse, deposit, warned-withdrawal cancel/confirm, edit, delete, artwork, and storage-reset workflows; verify focus wrapping, Escape, and restoration after exits.
+- [x] Capture representative dashboard, expanded-activity, transaction-sheet, warning-dialog, and artwork-processing screenshots for desktop Chromium, Pixel 7 mobile Chromium, and reduced-motion Chromium.
+- [x] Inspect screenshots for action wrapping, clipped labels, long reason or amount collisions, sheet framing, backdrop layering, focus visibility, unstable dimensions, overlap, unintended palette/type changes, and unexpected layout shifts.
+- [x] Update `docs/project-brief.md` current status with collapsed-by-default newest-first activity, labeled reason notes, responsive dialog placement, and reduced-motion-safe interaction feedback.
+- [x] Update `README.md` only where the feature summary needs to mention collapsible activity and responsive mobile dialogs; do not expand product scope or alter local-data guarantees.
+- [x] Review the final diff for duplicated dialog behavior, accidental domain or storage changes, stale generated screenshots, report artifacts, secrets, unrelated formatting, dependency churn, and stale documentation.
+- [x] Check every Session 14-17 acceptance point against automated or documented manual evidence and add the completed Session Log entries newest first.
 
 **Final Validation**
 
-- [ ] `npm run format:check`
-- [ ] `npm run lint`
-- [ ] `npm run typecheck`
-- [ ] `npm run test:coverage`
-- [ ] `npm run build`
-- [ ] `npm run test:e2e`
-- [ ] `git diff --check`
-- [ ] Workspace diagnostics report no relevant errors.
-- [ ] Desktop screenshot inspection passed.
-- [ ] Mobile screenshot inspection passed.
-- [ ] Reduced-motion screenshot inspection passed.
+- [x] `npm run format:check`
+- [x] `npm run lint`
+- [x] `npm run typecheck`
+- [x] `npm run test:coverage`
+- [x] `npm run build`
+- [x] `npm run test:e2e`
+- [x] `git diff --check`
+- [x] Workspace diagnostics report no relevant errors.
+- [x] Desktop screenshot inspection passed.
+- [x] Mobile screenshot inspection passed.
+- [x] Reduced-motion screenshot inspection passed.
 
 **Handoff:** Record browser versions, activity and reason evidence, dialog geometry, keyboard and focus results, screenshot findings, coverage totals, documentation changes, and any intentionally manual assertions in the Session Log.
 
@@ -566,6 +566,13 @@ Every implementation session must:
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
+
+### 2026-08-10 - Session 17: Design Polish Browser Gate
+
+- Completed: Extended Playwright coverage for collapsed count-labeled activity, full newest-first expansion and collapse, labeled withdrawal-reason persistence and row association, one-row goal actions, long-reason and viewport containment, centered desktop dialogs, safe-area-aware Pixel 7 bottom sheets, immediate reduced-motion states, and keyboard-only create/cancel, activity, deposit, warned-withdrawal cancel/confirm, edit, delete, artwork, and storage-reset workflows. Captured and inspected dashboard, expanded-activity, transaction, warning, and artwork-processing states for all three projects. Contained right-edge action tooltips on narrow viewports and updated the project brief and README without changing scope or local-data guarantees.
+- Validation: Red browser evidence first failed because Session 14 activity is intentionally collapsed; the focused disclosure test then passed. The final gate passed `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm run test:coverage` (177 tests across 22 files; 91.83% statements, 87.54% branches, 96.71% functions, and 91.75% lines), `npm run build`, `npm run test:e2e` (45 tests across desktop, Pixel 7 mobile, and reduced-motion Chromium), and `git diff --check`; workspace diagnostics were clean. Playwright 1.62.1 used Chromium 151.0.7922.34.
+- Decisions or deviations: Fifteen ignored Session 17 screenshots passed inspection for action wrapping, reason and amount separation, clipping, overflow, dialog and backdrop framing, focus visibility, stable processing dimensions, overlap, palette, typography, and layout shifts. Geometry assertions allow 2px compositor rounding while enforcing viewport bounds, mobile full-width bottom anchoring and safe-area padding, and desktop centering and height/width limits. The processing screenshot uses a test-only delayed image decode and aborts the edit afterward. Session 14-17 unit, browser, keyboard, geometry, reduced-motion, and manual screenshot evidence was reviewed; no domain, storage, state, dependency, or persisted-data behavior changed, and no generated screenshots or reports are tracked.
+- Next unchecked task: None; Session 17 and the interaction-polish release gate are complete.
 
 ### 2026-08-10 - Session 16: Interaction Feedback And Local Motion
 

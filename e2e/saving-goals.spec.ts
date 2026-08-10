@@ -1,7 +1,8 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 import { Buffer } from "node:buffer";
 
 const storageKey = "saving-goal:state";
+const geometryTolerancePixels = 2;
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
@@ -78,14 +79,26 @@ test("records deposits and ordinary withdrawals", async ({ page }) => {
   await recordTransaction(page, "Emergency fund", "withdrawal", "10.00");
   await expect(goalBalance(page, "Emergency fund")).toHaveText("$130.00");
 
+  const disclosure = page.getByRole("button", { name: "Show 3 activities" });
+  await expect(disclosure).toHaveAttribute("aria-expanded", "false");
+  await expect(
+    page.getByRole("list", { name: "Activity for Emergency fund" }),
+  ).toHaveCount(0);
+  await disclosure.click();
+
   const activity = page.getByRole("list", {
     name: "Activity for Emergency fund",
   });
-  await expect(activity.getByText("Deposit", { exact: true })).toBeVisible();
-  await expect(activity.getByText("$40.00", { exact: true })).toBeVisible();
-  await expect(activity.getByText("Withdrawal", { exact: true })).toBeVisible();
-  await expect(activity.getByText("-$10.00", { exact: true })).toBeVisible();
   await expect(activity.getByRole("listitem")).toHaveCount(3);
+  await expect(activity.getByRole("listitem")).toHaveText([
+    /Withdrawal.*-\$10\.00/,
+    /Deposit.*\$40\.00/,
+    /Opening balance.*\$100\.00/,
+  ]);
+
+  await page.getByRole("button", { name: "Hide activity" }).click();
+  await expect(activity).toHaveCount(0);
+  await expect(disclosure).toHaveAttribute("aria-expanded", "false");
 });
 
 test("persists ordinary and warned withdrawal reasons exactly once", async ({
@@ -119,16 +132,29 @@ test("persists ordinary and warned withdrawal reasons exactly once", async ({
   });
   await expect(warning).toContainText("Urgent dental appointment");
   await warning.getByRole("button", { name: "Confirm withdrawal" }).click();
+  await expect.poll(() => storedTransactionCount(page)).toBe(3);
   await page.reload();
 
+  await expandActivity(page, "Emergency fund", 3);
+  const activity = activityList(page, "Emergency fund");
   const reasons = page.getByTestId("withdrawal-reason");
   await expect(reasons).toHaveCount(2);
+  const ordinaryWithdrawal = activity.getByRole("listitem").filter({
+    hasText: "Replace a damaged tire",
+  });
+  const warnedWithdrawal = activity.getByRole("listitem").filter({
+    hasText: "Urgent dental appointment",
+  });
+  await expect(ordinaryWithdrawal).toHaveCount(1);
   await expect(
-    reasons.filter({ hasText: "Replace a damaged tire" }),
-  ).toHaveCount(1);
+    ordinaryWithdrawal.getByText("Reason", { exact: true }),
+  ).toBeVisible();
+  await expect(ordinaryWithdrawal).toContainText("-$20.00");
+  await expect(warnedWithdrawal).toHaveCount(1);
   await expect(
-    reasons.filter({ hasText: "Urgent dental appointment" }),
-  ).toHaveCount(1);
+    warnedWithdrawal.getByText("Reason", { exact: true }),
+  ).toBeVisible();
+  await expect(warnedWithdrawal).toContainText("-$50.00");
   await expect.poll(() => storedTransactionCount(page)).toBe(3);
 });
 
@@ -264,19 +290,18 @@ test("cancels and confirms a warned withdrawal without duplication", async ({
 
   await expect(goalBalance(page, "Emergency fund")).toHaveText("$100.00");
   await expect(
-    page
-      .getByRole("list", { name: "Activity for Emergency fund" })
-      .getByRole("listitem"),
-  ).toHaveCount(1);
+    goalCard(page, "Emergency fund").getByRole("button", {
+      name: "Show 1 activities",
+    }),
+  ).toBeVisible();
 
   await recordTransaction(page, "Emergency fund", "withdrawal", "30.00");
   await warning.getByRole("button", { name: "Confirm withdrawal" }).click();
 
   await expect(goalBalance(page, "Emergency fund")).toHaveText("$70.00");
+  await expandActivity(page, "Emergency fund", 2);
   await expect(
-    page
-      .getByRole("list", { name: "Activity for Emergency fund" })
-      .getByRole("listitem"),
+    activityList(page, "Emergency fund").getByRole("listitem"),
   ).toHaveCount(2);
 });
 
@@ -449,9 +474,7 @@ test("preserves malformed storage until the user explicitly resets it", async ({
   ).toBeVisible();
 });
 
-test("supports keyboard artwork and withdrawal-reason workflows", async ({
-  page,
-}) => {
+test("supports keyboard interaction-polish workflows", async ({ page }) => {
   const firstArtwork = await generatedArtwork(page, {
     name: "first.png",
     mimeType: "image/png",
@@ -460,9 +483,15 @@ test("supports keyboard artwork and withdrawal-reason workflows", async ({
   });
   await page.getByRole("button", { name: "Add goal" }).focus();
   await page.keyboard.press("Enter");
-  const createDialog = page.getByRole("dialog", {
+  let createDialog = page.getByRole("dialog", {
     name: "Create a saving goal",
   });
+  await page.keyboard.press("Escape");
+  await expect(createDialog).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Add goal" })).toBeFocused();
+
+  await page.keyboard.press("Enter");
+  createDialog = page.getByRole("dialog", { name: "Create a saving goal" });
   await createDialog
     .getByRole("textbox", { name: "Goal name" })
     .fill("Keyboard fund");
@@ -479,6 +508,16 @@ test("supports keyboard artwork and withdrawal-reason workflows", async ({
   );
   await createDialog.getByRole("button", { name: "Create goal" }).focus();
   await page.keyboard.press("Enter");
+
+  const activityDisclosure = goalCard(page, "Keyboard fund").getByRole(
+    "button",
+    { name: "Show 1 activities" },
+  );
+  await activityDisclosure.focus();
+  await page.keyboard.press("Enter");
+  await expect(activityList(page, "Keyboard fund")).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(activityList(page, "Keyboard fund")).toHaveCount(0);
 
   const replacementArtwork = await generatedArtwork(page, {
     name: "replacement.webp",
@@ -505,6 +544,8 @@ test("supports keyboard artwork and withdrawal-reason workflows", async ({
   await page.keyboard.press("Enter");
   await expect(goalArtwork(page, "Keyboard fund")).toHaveCount(0);
 
+  await recordDepositWithKeyboard(page, "Keyboard fund", "20.00");
+  await expect(goalBalance(page, "Keyboard fund")).toHaveText("$220.00");
   await recordWithdrawalWithKeyboard(
     page,
     "Keyboard fund",
@@ -517,7 +558,7 @@ test("supports keyboard artwork and withdrawal-reason workflows", async ({
     "50.00",
     "Keyboard warned reason",
   );
-  const warning = page.getByRole("dialog", {
+  let warning = page.getByRole("dialog", {
     name: "Confirm large withdrawal",
   });
   await expect(
@@ -527,13 +568,78 @@ test("supports keyboard artwork and withdrawal-reason workflows", async ({
   await expect(
     warning.getByRole("button", { name: "Confirm withdrawal" }),
   ).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(warning).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Add transaction for Keyboard fund" }),
+  ).toBeFocused();
+
+  await recordWithdrawalWithKeyboard(
+    page,
+    "Keyboard fund",
+    "50.00",
+    "Keyboard warned reason",
+  );
+  warning = page.getByRole("dialog", { name: "Confirm large withdrawal" });
+  await warning.getByRole("button", { name: "Confirm withdrawal" }).focus();
   await page.keyboard.press("Enter");
+  await expandActivityWithKeyboard(page, "Keyboard fund", 4);
   await expect(page.getByTestId("withdrawal-reason")).toHaveCount(2);
+
+  await page.getByRole("button", { name: "Edit Keyboard fund" }).focus();
+  await page.keyboard.press("Enter");
+  await page
+    .getByRole("dialog", { name: "Edit saving goal" })
+    .getByRole("button", { name: "Cancel" })
+    .focus();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("button", { name: "Edit Keyboard fund" }),
+  ).toBeFocused();
+
+  await page.getByRole("button", { name: "Delete Keyboard fund" }).focus();
+  await page.keyboard.press("Enter");
+  const deleteDialog = page.getByRole("dialog", {
+    name: "Delete Keyboard fund?",
+  });
+  await expect(
+    deleteDialog.getByRole("button", { name: "Cancel" }),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(
+    deleteDialog.getByRole("button", { name: "Delete permanently" }),
+  ).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("region", { name: "Start your first goal" }),
+  ).toBeVisible();
+
+  const malformedValue = '{"version":2,"state":';
+  await page.evaluate(({ key, value }) => localStorage.setItem(key, value), {
+    key: storageKey,
+    value: malformedValue,
+  });
+  await page.reload();
+  const resetTrigger = page.getByRole("button", { name: "Reset saved data" });
+  await resetTrigger.focus();
+  await page.keyboard.press("Enter");
+  let resetDialog = page.getByRole("dialog", { name: "Reset saved data?" });
+  await page.keyboard.press("Escape");
+  await expect(resetDialog).toHaveCount(0);
+  await expect(resetTrigger).toBeFocused();
+  await page.keyboard.press("Enter");
+  resetDialog = page.getByRole("dialog", { name: "Reset saved data?" });
+  await resetDialog.getByRole("button", { name: "Reset permanently" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("region", { name: "Start your first goal" }),
+  ).toBeVisible();
 });
 
 test("fits progress visuals and dialog framing at the configured viewport", async ({
   page,
 }, testInfo) => {
+  const longGoalName = "A very long professional laptop replacement fund";
   const artwork = await generatedArtwork(page, {
     name: "responsive-goal.png",
     mimeType: "image/png",
@@ -542,7 +648,7 @@ test("fits progress visuals and dialog framing at the configured viewport", asyn
   });
   const longReason = "R".repeat(160);
   await createGoal(page, {
-    name: "A very long professional laptop replacement fund",
+    name: longGoalName,
     target: "1000.00",
     openingBalance: "1250.00",
     currency: "USD",
@@ -551,7 +657,7 @@ test("fits progress visuals and dialog framing at the configured viewport", asyn
   });
   await recordTransaction(
     page,
-    "A very long professional laptop replacement fund",
+    longGoalName,
     "withdrawal",
     "100.00",
     longReason,
@@ -564,10 +670,21 @@ test("fits progress visuals and dialog framing at the configured viewport", asyn
     warningThreshold: "20",
   });
 
-  await expect(page.locator("html")).toHaveJSProperty(
-    "scrollWidth",
-    await page.locator("html").evaluate((element) => element.clientWidth),
-  );
+  const longGoal = goalCard(page, longGoalName);
+  const activityDisclosure = longGoal.locator(".activity-disclosure__trigger");
+  await expect(activityDisclosure).toHaveAccessibleName("Show 2 activities");
+  await expect(activityDisclosure).toHaveAttribute("aria-expanded", "false");
+  await expect(activityList(page, longGoalName)).toHaveCount(0);
+  await assertActionGeometry(page, longGoal);
+
+  if (testInfo.project.name === "reduced-motion-chromium") {
+    await expect(longGoal.locator(".activity-disclosure")).toHaveAttribute(
+      "data-motion",
+      "reduced",
+    );
+  }
+
+  await expectNoHorizontalOverflow(page);
   const fillWidths = await page
     .getByTestId("progress-fill")
     .evaluateAll((fills) =>
@@ -576,28 +693,46 @@ test("fits progress visuals and dialog framing at the configured viewport", asyn
   expect(fillWidths).toHaveLength(2);
   expect(fillWidths.every((width) => width > 0)).toBe(true);
 
-  const artworkBox = await goalCard(
-    page,
-    "A very long professional laptop replacement fund",
-  )
+  const artworkBox = await longGoal
     .locator(".goal-card__artwork")
     .boundingBox();
   expect(artworkBox?.width).toBe(56);
   expect(artworkBox?.height).toBe(56);
+
+  await page.screenshot({
+    path: `test-results/session-17-${testInfo.project.name}-dashboard.png`,
+    fullPage: true,
+  });
+
+  await activityDisclosure.click();
+  const expandedActivity = activityList(page, longGoalName);
+  await expect(expandedActivity.getByRole("listitem")).toHaveCount(2);
   const longReasonElement = page.getByTestId("withdrawal-reason");
   await expect(longReasonElement).toHaveText(longReason);
+  await expect(
+    longReasonElement.locator("..").getByText("Reason", { exact: true }),
+  ).toBeVisible();
   const longReasonBox = await longReasonElement.boundingBox();
+  const longReasonAmountBox = await longReasonElement
+    .locator("xpath=ancestor::li[1]")
+    .locator(".activity-list__amount")
+    .boundingBox();
   const viewport = page.viewportSize();
   expect(longReasonBox).not.toBeNull();
+  expect(longReasonAmountBox).not.toBeNull();
   expect(viewport).not.toBeNull();
   expect(longReasonBox!.x).toBeGreaterThanOrEqual(0);
   expect(longReasonBox!.x + longReasonBox!.width).toBeLessThanOrEqual(
     viewport!.width,
   );
   expect(longReasonBox!.height).toBeGreaterThan(20);
+  expect(longReasonBox!.x + longReasonBox!.width).toBeLessThanOrEqual(
+    longReasonAmountBox!.x,
+  );
+  await assertWithinViewport(page, expandedActivity);
 
   await page.screenshot({
-    path: `test-results/session-13-${testInfo.project.name}-dashboard.png`,
+    path: `test-results/session-17-${testInfo.project.name}-expanded-activity.png`,
     fullPage: true,
   });
 
@@ -606,21 +741,68 @@ test("fits progress visuals and dialog framing at the configured viewport", asyn
     .click();
   const dialog = page.getByRole("dialog", { name: "Add transaction" });
   await expect(dialog).toBeInViewport();
-  const dialogBox = await dialog.boundingBox();
-  const dialogViewport = page.viewportSize();
-  expect(dialogBox).not.toBeNull();
-  expect(dialogViewport).not.toBeNull();
-  expect(dialogBox!.x).toBeGreaterThanOrEqual(0);
-  expect(dialogBox!.y).toBeGreaterThanOrEqual(0);
-  expect(dialogBox!.x + dialogBox!.width).toBeLessThanOrEqual(
-    dialogViewport!.width,
-  );
-  expect(dialogBox!.y + dialogBox!.height).toBeLessThanOrEqual(
-    dialogViewport!.height,
-  );
+  await assertDialogGeometry(page, dialog, testInfo.project.name);
+  if (testInfo.project.name === "reduced-motion-chromium") {
+    await expect(page.locator(".dialog-backdrop")).toHaveAttribute(
+      "data-motion",
+      "reduced",
+    );
+  }
   await page.screenshot({
-    path: `test-results/session-13-${testInfo.project.name}-dialog.png`,
+    path: `test-results/session-17-${testInfo.project.name}-transaction-sheet.png`,
   });
+
+  await dialog.getByRole("button", { name: "Withdrawal" }).click();
+  await dialog.getByRole("textbox", { name: "Amount" }).fill("50000");
+  if (testInfo.project.name === "reduced-motion-chromium") {
+    await expect(
+      dialog.locator('[data-motion-region="withdrawal-reason"]'),
+    ).toHaveAttribute("data-motion", "reduced");
+    await expect(
+      dialog.locator('[data-motion-region="transaction-preview"]'),
+    ).toHaveAttribute("data-motion", "reduced");
+    await expect(
+      dialog.getByRole("button", { name: "Withdrawal", exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
+  }
+  await dialog.getByRole("button", { name: "Record withdrawal" }).click();
+  const warning = page.getByRole("dialog", {
+    name: "Confirm large withdrawal",
+  });
+  await assertDialogGeometry(page, warning, testInfo.project.name);
+  await page.screenshot({
+    path: `test-results/session-17-${testInfo.project.name}-warning-dialog.png`,
+  });
+  await warning.getByRole("button", { name: "Keep savings" }).click();
+  await expect(warning).toHaveCount(0);
+
+  const replacementArtwork = await generatedArtwork(page, {
+    name: "processing.png",
+    mimeType: "image/png",
+    width: 256,
+    height: 128,
+  });
+  await delayImageDecoding(page);
+  await page.getByRole("button", { name: `Edit ${longGoalName}` }).click();
+  const editDialog = page.getByRole("dialog", { name: "Edit saving goal" });
+  await editDialog
+    .getByLabel("Replace artwork")
+    .setInputFiles(replacementArtwork);
+  const artworkStage = editDialog.getByTestId("goal-artwork-stage");
+  await expect(artworkStage).toHaveAttribute("data-state", "processing");
+  await expect(editDialog.getByRole("status")).toContainText(
+    "Processing artwork",
+  );
+  await expect(
+    editDialog.getByRole("button", { name: "Save changes" }),
+  ).toBeDisabled();
+  if (testInfo.project.name === "reduced-motion-chromium") {
+    await expect(artworkStage).toHaveAttribute("data-motion", "reduced");
+  }
+  await page.screenshot({
+    path: `test-results/session-17-${testInfo.project.name}-artwork-processing.png`,
+  });
+  await page.keyboard.press("Escape");
 });
 
 interface GoalInput {
@@ -662,6 +844,7 @@ async function createGoal(page: Page, input: GoalInput): Promise<void> {
     ).toBeVisible();
   }
   await dialog.getByRole("button", { name: "Create goal" }).click();
+  await expect(dialog).toHaveCount(0);
 }
 
 function goalCard(page: Page, goalName: string) {
@@ -674,6 +857,38 @@ function goalBalance(page: Page, goalName: string) {
 
 function goalArtwork(page: Page, goalName: string) {
   return goalCard(page, goalName).locator(".goal-card__artwork img");
+}
+
+function activityList(page: Page, goalName: string) {
+  return page.getByRole("list", { name: `Activity for ${goalName}` });
+}
+
+async function expandActivity(
+  page: Page,
+  goalName: string,
+  count: number,
+): Promise<void> {
+  const card = goalCard(page, goalName);
+  const disclosure = card.locator(".activity-disclosure__trigger");
+  await expect(disclosure).toHaveAccessibleName(`Show ${count} activities`);
+  await disclosure.click();
+  await expect(disclosure).toHaveAccessibleName("Hide activity");
+  await expect(disclosure).toHaveAttribute("aria-expanded", "true");
+  await expect(activityList(page, goalName)).toBeVisible();
+}
+
+async function expandActivityWithKeyboard(
+  page: Page,
+  goalName: string,
+  count: number,
+): Promise<void> {
+  const disclosure = goalCard(page, goalName).locator(
+    ".activity-disclosure__trigger",
+  );
+  await expect(disclosure).toHaveAccessibleName(`Show ${count} activities`);
+  await disclosure.focus();
+  await page.keyboard.press("Enter");
+  await expect(activityList(page, goalName)).toBeVisible();
 }
 
 async function generatedArtwork(
@@ -759,6 +974,146 @@ async function recordWithdrawalWithKeyboard(
   await page.keyboard.type(reason);
   await dialog.getByRole("button", { name: "Record withdrawal" }).focus();
   await page.keyboard.press("Enter");
+}
+
+async function recordDepositWithKeyboard(
+  page: Page,
+  goalName: string,
+  amount: string,
+): Promise<void> {
+  const trigger = page.getByRole("button", {
+    name: `Add transaction for ${goalName}`,
+  });
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  const dialog = page.getByRole("dialog", { name: "Add transaction" });
+  await dialog.getByRole("textbox", { name: "Amount" }).fill(amount);
+  await dialog.getByRole("button", { name: "Record deposit" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(trigger).toBeFocused();
+}
+
+async function assertActionGeometry(page: Page, card: Locator): Promise<void> {
+  const viewport = page.viewportSize();
+  const actionBoxes = await card
+    .locator(".goal-card__actions > *")
+    .evaluateAll((controls) =>
+      controls.map((control) => {
+        const box = control.getBoundingClientRect();
+        return { x: box.x, y: box.y, width: box.width, height: box.height };
+      }),
+    );
+  expect(viewport).not.toBeNull();
+  expect(actionBoxes).toHaveLength(3);
+  expect(new Set(actionBoxes.map((box) => Math.round(box.y))).size).toBe(1);
+  expect(
+    actionBoxes.every(
+      (box) =>
+        box.x >= 0 &&
+        box.x + box.width <= viewport!.width &&
+        box.width > 0 &&
+        box.height >= 44,
+    ),
+  ).toBe(true);
+}
+
+async function assertWithinViewport(
+  page: Page,
+  locator: Locator,
+): Promise<void> {
+  const box = await locator.boundingBox();
+  const viewport = page.viewportSize();
+  expect(box).not.toBeNull();
+  expect(viewport).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width);
+  await expectNoHorizontalOverflow(page);
+}
+
+async function expectNoHorizontalOverflow(page: Page): Promise<void> {
+  const overflow = await page.locator("body").evaluate((body) => {
+    const viewportWidth = document.documentElement.clientWidth;
+    return Array.from(body.querySelectorAll("*"))
+      .map((element) => {
+        const box = element.getBoundingClientRect();
+        return {
+          element: `${element.tagName.toLowerCase()}.${element.className}`,
+          left: box.left,
+          right: box.right,
+        };
+      })
+      .filter(({ left, right }) => left < -0.5 || right > viewportWidth + 0.5);
+  });
+
+  expect(overflow).toEqual([]);
+}
+
+async function assertDialogGeometry(
+  page: Page,
+  dialog: Locator,
+  projectName: string,
+): Promise<void> {
+  const viewport = page.viewportSize();
+  expect(viewport).not.toBeNull();
+  await expect
+    .poll(async () => {
+      const currentBox = await dialog.boundingBox();
+      if (currentBox === null) {
+        return Number.POSITIVE_INFINITY;
+      }
+
+      return projectName === "mobile-chromium"
+        ? Math.abs(currentBox.y + currentBox.height - viewport!.height)
+        : Math.abs(currentBox.y + currentBox.height / 2 - viewport!.height / 2);
+    })
+    .toBeLessThanOrEqual(geometryTolerancePixels);
+
+  const box = await dialog.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.y).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height);
+
+  if (projectName === "mobile-chromium") {
+    expect(Math.abs(box!.x)).toBeLessThanOrEqual(geometryTolerancePixels);
+    expect(Math.abs(box!.width - viewport!.width)).toBeLessThanOrEqual(
+      geometryTolerancePixels,
+    );
+    expect(
+      Math.abs(box!.y + box!.height - viewport!.height),
+    ).toBeLessThanOrEqual(geometryTolerancePixels);
+    const paddingBottom = await dialog.evaluate((element) =>
+      Number.parseFloat(getComputedStyle(element).paddingBottom),
+    );
+    expect(paddingBottom).toBeGreaterThanOrEqual(24);
+  } else {
+    expect(box!.width).toBeLessThanOrEqual(544);
+    expect(
+      Math.abs(box!.x + box!.width / 2 - viewport!.width / 2),
+    ).toBeLessThanOrEqual(geometryTolerancePixels);
+    expect(
+      Math.abs(box!.y + box!.height / 2 - viewport!.height / 2),
+    ).toBeLessThanOrEqual(geometryTolerancePixels);
+    expect(box!.height).toBeLessThanOrEqual(viewport!.height - 32);
+  }
+}
+
+async function delayImageDecoding(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const originalCreateImageBitmap = window.createImageBitmap.bind(window);
+    const delayedCreateImageBitmap = async (
+      image: ImageBitmapSource,
+      options?: ImageBitmapOptions,
+    ) => {
+      await new Promise((resolve) => window.setTimeout(resolve, 1500));
+      return options === undefined
+        ? originalCreateImageBitmap(image)
+        : originalCreateImageBitmap(image, options);
+    };
+    window.createImageBitmap =
+      delayedCreateImageBitmap as typeof window.createImageBitmap;
+  });
 }
 
 async function recordTransaction(

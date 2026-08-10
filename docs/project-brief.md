@@ -22,19 +22,26 @@ retaining valid data across browser refreshes.
 
 The repository has a responsive editorial React goal-management dashboard with
 accessible animated progress, overfunding and persisted completion states,
-per-goal localized balances and activity, and icon-based goal controls. Create,
-edit, permanent-delete, deposit, withdrawal, and large-withdrawal confirmation
-flows are implemented over a tested money and saving-goal domain, a validated
-local-storage boundary, and reducer-driven application state. Withdrawals can
-include an optional immutable reason, and goals can include locally normalized
-artwork that users can add, replace, or remove. Unavailable,
-quota-failed, and corrupt storage states provide explicit session-only or reset
-recovery without exposing or silently overwriting raw data. Primary workflows
-have passed desktop and mobile keyboard, focus, contrast, landmark, form,
-dialog, live-region, and reduced-motion audits. Formatting, linting,
-type-checking, unit-test, browser-test, build, and preview commands are
-executable. The persisted model and both interfaces use the strict version-two
-envelope for optional normalized goal artwork and withdrawal reasons.
+per-goal localized balances, and icon-based goal controls. Each goal's complete
+activity ledger is collapsed by default, count-labeled, and presented newest
+first when expanded; optional withdrawal reasons remain visibly labeled within
+their matching entries. Create, edit, permanent-delete, deposit, withdrawal,
+and large-withdrawal confirmation flows are implemented over a tested money and
+saving-goal domain, a validated local-storage boundary, and reducer-driven
+application state. Withdrawals can include an optional immutable reason, and
+goals can include locally normalized artwork that users can add, replace, or
+remove. Dialogs use bounded centered panels on larger viewports and
+safe-area-aware bottom sheets on phones. Control feedback, conditional form
+regions, artwork processing, activity disclosure, and dialog transitions settle
+immediately while preserving their information under reduced motion.
+Unavailable, quota-failed, and corrupt storage states provide explicit
+session-only or reset recovery without exposing or silently overwriting raw
+data. Primary workflows have passed desktop and mobile keyboard, focus,
+contrast, landmark, form, dialog, live-region, responsive-geometry, screenshot,
+and reduced-motion audits. Formatting, linting, type-checking, unit-test,
+browser-test, build, and preview commands are executable. The persisted model
+and both interfaces use the strict version-two envelope for optional normalized
+goal artwork and withdrawal reasons.
 
 ## Product Scope
 
