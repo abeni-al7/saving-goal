@@ -9,6 +9,8 @@ an immutable activity history, and see progress without creating an account.
 - Multiple goals with per-goal ISO currencies and withdrawal thresholds
 - Exact minor-unit money arithmetic and localized amount formatting
 - Immutable opening, deposit, and withdrawal transactions
+- Optional trimmed withdrawal reasons retained in immutable activity history
+- Optional goal artwork with local preview, replacement, and removal
 - Projected transaction effects, overdraft protection, and confirmation for
   unusually large withdrawals
 - Accessible progress, first-completion feedback, dialogs, live announcements,
@@ -60,10 +62,23 @@ npx playwright install chromium
 ## Local-Only Data
 
 Saving data is stored under `saving-goal:state` in the current browser profile's
-local storage. It is not sent to a server, synchronized, encrypted by this app,
-or backed up. Anyone with access to the browser profile may be able to inspect
-it. Clearing site data, using private browsing, changing browser profiles, or
-losing the device can permanently remove the data.
+local storage using a strict version-two envelope. It is not sent to a server,
+synchronized, encrypted by this app, or backed up. Anyone with access to the
+browser profile may be able to inspect it. Clearing site data, using private
+browsing, changing browser profiles, or losing the device can permanently
+remove the data. Valid version-one data migrates automatically; malformed and
+unsupported data remains preserved for explicit recovery.
+
+Withdrawal reasons are optional, limited to 160 characters, and stored only on
+withdrawal records. Goal artwork accepts PNG, JPEG, and WebP source files up to
+2 MB. The browser processes artwork locally without uploading it, preserves its
+aspect ratio, does not crop or upscale it, and stores only a normalized PNG with
+a longest side of 128px and a Base64 payload no larger than 100 KB.
+
+Artwork uses substantially more local-storage quota than text. If the browser
+rejects a save because its quota is full, the app keeps the current in-memory
+state for the session, reports the persistence failure, and does not overwrite
+the prior saved value. Removing artwork reduces future storage usage.
 
 When saved data is invalid, the app preserves it and shows **Saved data needs
 attention**. Choose **Continue this session** to leave the stored value unchanged
@@ -78,4 +93,5 @@ React and TypeScript render a static Vite application. Pure domain modules own
 money and saving rules, a reducer coordinates state, and a strict Zod schema
 guards the versioned storage boundary. See
 [ADR 0001](docs/decisions/0001-client-only-react-local-storage.md) for the
-decision and tradeoffs.
+client-only decision and [ADR 0002](docs/decisions/0002-bounded-goal-icons-in-local-storage.md)
+for bounded artwork storage and its reconsideration threshold.

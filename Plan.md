@@ -34,7 +34,7 @@ Every implementation session must:
 - [x] Configure withdrawal warnings per goal, defaulting to 20% of current balance.
 - [x] Allow a warned withdrawal after explicit confirmation, but never allow an overdraft.
 - [x] Keep completed goals active, display percentages above 100%, and celebrate first completion once.
-- [x] Exclude authentication, cloud sync, conversion, target dates, recurring deposits, archives, transaction editing, import/export, and notes from the MVP.
+- [x] Exclude authentication, cloud sync, conversion, target dates, recurring deposits, archives, transaction editing, import/export, and general transaction notes from the MVP.
 - [x] Treat withdrawal reasons as optional, immutable withdrawal-only metadata limited to 160 trimmed characters.
 - [x] Let users add, replace, and remove goal artwork during goal creation and editing.
 - [x] Accept PNG, JPEG, and WebP artwork sources up to 2 MB, then normalize them locally to PNG with a longest side of 128px and a maximum encoded payload of 100 KB.
@@ -407,31 +407,31 @@ Every implementation session must:
 
 **Outcome:** Browser coverage, accessibility checks, documentation, and the complete quality suite verify both features across persistence and responsive workflows.
 
-- [ ] Extend Playwright helpers to record optional withdrawal reasons and attach generated image buffers without committing binary fixtures.
-- [ ] Cover an ordinary withdrawal reason and a warned withdrawal reason through confirmation, reload, and exactly-one-record assertions.
-- [ ] Cover goal creation with artwork, decoded normalized dimensions and PNG type, reload persistence, replacement, and removal.
-- [ ] Cover unsupported image types and oversized source files without changing the saved goal.
-- [ ] Re-run viewport framing and horizontal-overflow assertions with a long goal name, goal artwork, and a 160-character withdrawal reason.
-- [ ] Complete a keyboard-only pass for selecting, replacing, and removing artwork and for recording ordinary and warned withdrawal reasons.
-- [ ] Inspect desktop, mobile, and reduced-motion screenshots for image clarity, stable sizing, reason wrapping, clipping, overlap, and dialog framing.
-- [ ] Update `docs/project-brief.md` and `README.md` with both features, accepted image formats and limits, schema version two, local-only image handling, and quota implications.
-- [ ] Refine the out-of-scope notes language so it excludes general transaction notes without contradicting optional withdrawal reasons.
-- [ ] Add `docs/decisions/0002-bounded-goal-icons-in-local-storage.md` documenting normalized data URLs, privacy and quota tradeoffs, rejected network storage, and the threshold for reconsidering IndexedDB.
-- [ ] Review the final diff for accidental report artifacts, raw source-image persistence, secrets, stale version-one documentation, unrelated formatting, and new network or runtime dependencies.
-- [ ] Check every new acceptance criterion against automated or documented manual evidence.
+- [x] Extend Playwright helpers to record optional withdrawal reasons and attach generated image buffers without committing binary fixtures.
+- [x] Cover an ordinary withdrawal reason and a warned withdrawal reason through confirmation, reload, and exactly-one-record assertions.
+- [x] Cover goal creation with artwork, decoded normalized dimensions and PNG type, reload persistence, replacement, and removal.
+- [x] Cover unsupported image types and oversized source files without changing the saved goal.
+- [x] Re-run viewport framing and horizontal-overflow assertions with a long goal name, goal artwork, and a 160-character withdrawal reason.
+- [x] Complete a keyboard-only pass for selecting, replacing, and removing artwork and for recording ordinary and warned withdrawal reasons.
+- [x] Inspect desktop, mobile, and reduced-motion screenshots for image clarity, stable sizing, reason wrapping, clipping, overlap, and dialog framing.
+- [x] Update `docs/project-brief.md` and `README.md` with both features, accepted image formats and limits, schema version two, local-only image handling, and quota implications.
+- [x] Refine the out-of-scope notes language so it excludes general transaction notes without contradicting optional withdrawal reasons.
+- [x] Add `docs/decisions/0002-bounded-goal-icons-in-local-storage.md` documenting normalized data URLs, privacy and quota tradeoffs, rejected network storage, and the threshold for reconsidering IndexedDB.
+- [x] Review the final diff for accidental report artifacts, raw source-image persistence, secrets, stale version-one documentation, unrelated formatting, and new network or runtime dependencies.
+- [x] Check every new acceptance criterion against automated or documented manual evidence.
 
 **Final Validation**
 
-- [ ] `npm run format:check`
-- [ ] `npm run lint`
-- [ ] `npm run typecheck`
-- [ ] `npm run test:coverage`
-- [ ] `npm run build`
-- [ ] `npm run test:e2e`
-- [ ] Workspace diagnostics report no relevant errors.
-- [ ] Desktop screenshot inspection passed.
-- [ ] Mobile screenshot inspection passed.
-- [ ] Reduced-motion inspection passed.
+- [x] `npm run format:check`
+- [x] `npm run lint`
+- [x] `npm run typecheck`
+- [x] `npm run test:coverage`
+- [x] `npm run build`
+- [x] `npm run test:e2e`
+- [x] Workspace diagnostics report no relevant errors.
+- [x] Desktop screenshot inspection passed.
+- [x] Mobile screenshot inspection passed.
+- [x] Reduced-motion inspection passed.
 
 **Handoff:** Record complete workflow evidence, browser versions, screenshots inspected, coverage results, storage migration behavior, and any intentionally manual assertions in the Session Log.
 
@@ -440,6 +440,13 @@ Every implementation session must:
 ## Session Log
 
 Add newest entries at the top. Keep entries brief and factual.
+
+### 2026-08-10 - Session 13: Feature Integration And Release Gate
+
+- Completed: Extended Playwright helpers with optional withdrawal reasons and in-memory PNG/JPEG/WebP generation; covered ordinary and warned reasons through confirmation, reload, and exact ledger counts; covered artwork creation, normalized PNG type and dimensions, reload, replacement, removal, invalid-type and oversized-source preservation; added keyboard-focused artwork and reason workflows; strengthened responsive geometry and screenshots with a long name, 56px artwork, and a 160-character reason; documented version two, limits, local processing, quota behavior, and precise general-note exclusions; and accepted ADR 0002 for bounded localStorage artwork. E2E specs are now included in the canonical TypeScript project.
+- Validation: `npm run test:coverage` passed 166 tests across 21 files with 91.28% statements, 87.12% branches, 96.5% functions, and 91.14% lines; `npm run test:e2e` passed 45 tests across desktop, Pixel 7 mobile, and reduced-motion Chromium; `npm run format:check`, `npm run lint`, `npm run typecheck`, and `npm run build` passed; workspace diagnostics and `git diff --check` were clean. Playwright 1.62.1 used Chrome for Testing 151.0.7922.34.
+- Decisions or deviations: Six ignored Session 13 screenshots were inspected and passed for artwork clarity and stable sizing, reason wrapping and amount alignment, horizontal overflow, clipping, overlap, and dialog framing. Keyboard focus and activation covered Add, Replace, Remove, submissions, reason entry, and warned confirmation; Playwright `setInputFiles` substituted only for choosing a file in the native OS picker, which browser automation cannot control. Valid version-one migration remains covered by storage tests, version-two persistence is asserted in the artwork browser workflow, rejected files retain the prior saved icon, and no binary fixtures, report artifacts, raw sources, secrets, dependencies, or network runtime were added.
+- Next unchecked task: None; Session 13 and the planned feature release gate are complete.
 
 ### 2026-08-10 - Session 12: Custom Goal Artwork
 

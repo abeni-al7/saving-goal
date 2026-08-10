@@ -56,8 +56,8 @@ envelope for optional normalized goal artwork and withdrawal reasons.
 
 - Authentication, user accounts, cloud sync, or multi-device access.
 - Exchange rates, currency conversion, or totals across unlike currencies.
-- Target dates, recurring deposits, archives, transaction editing, notes, and
-  import or export.
+- Target dates, recurring deposits, archives, transaction editing, general
+  transaction notes beyond the optional withdrawal reason, and import or export.
 - Bank connections, payment initiation, financial advice, and server-side
   backups.
 
@@ -109,6 +109,9 @@ files. Architecture rationale is recorded in
   payload is at most 100 KB. Withdrawals may contain an optional trimmed reason
   from 1 through 160 characters; opening balances and deposits cannot contain a
   reason.
+- Artwork sources must be PNG, JPEG, or WebP files no larger than 2 MB. The
+  browser preserves aspect ratio and transparency, never crops or upscales, and
+  normalizes the longest side to at most 128px before persistence.
 - A valid version-one envelope is validated against its original strict schema
   and migrated in memory by changing only the version. The next successful
   state change persists version two.
@@ -123,6 +126,9 @@ files. Architecture rationale is recorded in
 
 - Goal names, amounts, currencies, thresholds, normalized goal artwork, and
   transaction history remain in the current browser profile's local storage.
+- Artwork consumes more local-storage quota than text data. A quota failure
+  leaves the in-memory change available for the session and surfaces a save
+  error instead of discarding existing saved data.
 - The application does not transmit, synchronize, analyze, or back up saving
   data.
 - Anyone with access to the browser profile may be able to inspect the locally
