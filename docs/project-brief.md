@@ -41,7 +41,9 @@ contrast, landmark, form, dialog, live-region, responsive-geometry, screenshot,
 and reduced-motion audits. Formatting, linting, type-checking, unit-test,
 browser-test, build, and preview commands are executable. The persisted model
 and both interfaces use the strict version-two envelope for optional normalized
-goal artwork and withdrawal reasons.
+goal artwork and withdrawal reasons. Production Vercel deployments include
+Vercel Web Analytics for page views and Speed Insights for web-vitals and
+performance telemetry; both integrations are inactive during local development.
 
 ## Product Scope
 
@@ -102,10 +104,12 @@ canvas no larger than 128px on either side, and accepts only normalized PNG
 payloads no larger than 100 KB. Image processing can be canceled and never
 introduces a network request.
 
-The application has no backend or runtime network dependency. Vite produces
-static assets that can be hosted on any service capable of serving the built
-files. Architecture rationale is recorded in
-`docs/decisions/0001-client-only-react-local-storage.md`.
+The application has no backend, and its saving workflows have no runtime network
+dependency. Vite produces static assets that can be hosted on any service
+capable of serving the built files. On Vercel production deployments, root-level
+Analytics and Speed Insights components load Vercel telemetry and report page
+views and performance metrics after the app starts. Architecture rationale is
+recorded in `docs/decisions/0001-client-only-react-local-storage.md`.
 
 ## Persistence And Recovery
 
@@ -137,7 +141,12 @@ files. Architecture rationale is recorded in
   leaves the in-memory change available for the session and surfaces a save
   error instead of discarding existing saved data.
 - The application does not transmit, synchronize, analyze, or back up saving
-  data.
+  data. No goal names, amounts, currencies, reasons, artwork, or transaction
+  records are passed to Vercel as custom analytics events.
+- Production Vercel deployments transmit page-view and web-vitals performance
+  telemetry to Vercel Analytics and Speed Insights. The integrations do not
+  track during local development and must be enabled for the project in the
+  Vercel Dashboard.
 - Anyone with access to the browser profile may be able to inspect the locally
   stored data; this application is not an encrypted vault.
 - Clearing browser site data, using private browsing, changing browsers or

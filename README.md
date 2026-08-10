@@ -19,6 +19,7 @@ an immutable activity history, and see progress without creating an account.
 - Versioned local persistence with explicit corrupt-data and unavailable-storage
   recovery
 - Responsive desktop dialogs and safe-area-aware mobile bottom sheets
+- Production page-view analytics and web-vitals reporting through Vercel
 
 ## Prerequisites
 
@@ -88,11 +89,23 @@ state. To clear otherwise valid data, delete each goal in the app or clear this
 site's data through the browser settings. Both actions permanently remove the
 associated transaction history.
 
+## Vercel Observability
+
+Production deployments include Vercel Web Analytics for automatic page views
+and Speed Insights for web-vitals and performance metrics. Enable both features
+for the project in the Vercel Dashboard before deploying. The integrations do
+not track in local development.
+
+Saving data remains local: the app does not send goal names, amounts,
+currencies, withdrawal reasons, artwork, or transaction records as custom
+analytics events.
+
 ## Architecture
 
 React and TypeScript render a static Vite application. Pure domain modules own
 money and saving rules, a reducer coordinates state, and a strict Zod schema
-guards the versioned storage boundary. See
+guards the versioned storage boundary. The React root mounts Vercel Analytics
+and Speed Insights beside the application. See
 [ADR 0001](docs/decisions/0001-client-only-react-local-storage.md) for the
 client-only decision and [ADR 0002](docs/decisions/0002-bounded-goal-icons-in-local-storage.md)
 for bounded artwork storage and its reconsideration threshold.
